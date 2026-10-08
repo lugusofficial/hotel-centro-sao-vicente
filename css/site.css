@@ -299,22 +299,28 @@
   height: clamp(18rem, 48vw, 30rem);
 }
 .tour__capa img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* O veu escurece a foto para o botao se destacar, e nada mais: sem isto ele
+   fica por cima do botao e come o clique, que e o que acontecia. */
 .tour__capa::after {
   content: ""; position: absolute; inset: 0;
   background: rgba(8, 12, 26, 0.42);
+  pointer-events: none;
 }
-.tour__start { position: relative; }
+.tour__start { position: relative; z-index: 1; }
 .tour[data-pronto="true"] .tour__capa { display: none; }
 .tour__controles { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 /* 2.75rem de alvo: acima do minimo de 24 px do criterio 2.5.8 da WCAG 2.2 */
+/* Pastilha escura, a mesma linguagem do botao do menu. Antes era preenchida
+   com a cor de superficie, que e exatamente o fundo desta secao: o botao
+   sumia e sobrava a setinha solta. */
 .tour__btn {
   min-width: 2.75rem; min-height: 2.75rem; padding: 0 var(--space-3);
   font: inherit; font-size: var(--step--1); line-height: 1;
-  color: var(--color-text); background: var(--color-surface);
+  color: var(--color-bg); background: var(--color-text);
   border: 0; border-radius: var(--radius-pill);
-  cursor: pointer; transition: color 180ms ease, background 180ms ease;
+  cursor: pointer; transition: background 180ms ease;
 }
-.tour__btn:hover { color: var(--color-accent); }
+.tour__btn:hover { background: var(--color-accent); }
 .tour__btn--texto { padding-inline: var(--space-4); }
 .tour__status { min-height: 1.5em; font-size: var(--step--1); color: var(--color-muted); margin: 0; }
 .tour__aviso { font-size: var(--step--1); color: var(--color-muted); max-width: 48ch; }

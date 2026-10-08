@@ -106,7 +106,6 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     faixa: new THREE.MeshStandardMaterial({ color: 0xa7967a, roughness: 0.58, metalness: 0.08 }),
     base: new THREE.MeshStandardMaterial({ color: 0x4a443d, roughness: 0.55, metalness: 0.15 }),
     soleira: new THREE.MeshStandardMaterial({ color: 0x8e8070, roughness: 0.7, metalness: 0.05 }),
-    vizinho: new THREE.MeshStandardMaterial({ color: 0x272833, roughness: 0.95, metalness: 0 }),
     esquadria: new THREE.MeshStandardMaterial({ color: 0x1f1c18, roughness: 0.45, metalness: 0.5 }),
     // A janela e a propria luz: MeshBasicMaterial ignora as luzes da cena, entao
     // a cor da instancia vira brilho direto. Quarto livre fica quente e aceso,
@@ -242,7 +241,10 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     const faixaBaia = new THREE.Mesh(
       new THREE.CylinderGeometry(BAIA_R + 0.25, BAIA_R + 0.25, 0.34, 28, 1, true, 0, Math.PI),
       M.faixa);
-    faixaBaia.position.set(BAIA_X, D.peDireito - 0.17, 0);
+    // O eixo da curva vai na ponta DESTA caixa, nao na do corpo: a cinta e
+    // meio metro mais larga, e usar o mesmo eixo deixava a quina dela
+    // sobrando um palmo para fora da curva, que era o degrau no alto.
+    faixaBaia.position.set((largura + 0.5) / 2, D.peDireito - 0.17, 0);
     faixaBaia.castShadow = faixaBaia.receiveShadow = true;
     grupo.add(faixaBaia);
 
@@ -313,26 +315,9 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   const topoBaia = new THREE.Mesh(
     new THREE.CylinderGeometry(BAIA_R + 0.35, BAIA_R + 0.35, 0.8, 28, 1, true, 0, Math.PI),
     M.faixa);
-  topoBaia.position.set(BAIA_X, topoBase, 0);
+  topoBaia.position.set((largura + 0.7) / 2, topoBase, 0);
   topoBaia.castShadow = true;
   predio.add(topoBaia);
-
-  // Predios vizinhos. Sem eles o hotel flutua sozinho num plano vazio e le
-  // como objeto; encostado em dois blocos cegos ele le como predio de rua, que
-  // e o que o predio real e. Ficam fora do grupo do predio de proposito: o
-  // enquadramento da camera mede so o hotel, senao a cena abriria para caber a
-  // quadra inteira.
-  const vizinhanca = new THREE.Group();
-  vizinhanca.rotation.y = predio.rotation.y;
-  scene.add(vizinhanca);
-  [[-1, 0.78, 11], [1, 0.92, 13]].forEach(([lado, fator, larg]) => {
-    const h = alturaTotal * fator;
-    const b = new THREE.Mesh(new THREE.BoxGeometry(larg, h, prof * 0.92), M.vizinho);
-    const recuo = lado > 0 ? BAIA_R + 1.2 : 0;   // a ponta avanca para a direita
-    b.position.set(lado * (largura / 2 + recuo + larg / 2 - 0.3), h / 2, 0);
-    b.castShadow = b.receiveShadow = true;
-    vizinhanca.add(b);
-  });
 
   sol.target.position.set(0, alturaTotal * 0.45, 0);
   sol.target.updateMatrixWorld();
