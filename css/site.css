@@ -20,7 +20,7 @@
   position: relative;
   height: clamp(28rem, 82vh, 48rem);
   overflow: hidden;
-  background: #1b2440;
+  background: #080c1a;
 }
 .cena__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
 .cena__veu {
@@ -29,15 +29,15 @@
 }
 .cena__texto {
   position: absolute; inset: 0; display: grid; align-content: center;
-  pointer-events: none; color: #f6efe3;
+  pointer-events: none; color: var(--color-bg);
 }
 .cena__texto .label { color: #f0c489; }
-.cena__texto h1 { max-width: 13ch; color: #fffaf1; }
-.cena__texto .lead { max-width: 34ch; color: #e3dacb; }
+.cena__texto h1 { max-width: 13ch; color: var(--color-bg); }
+.cena__texto .lead { max-width: 34ch; color: var(--color-rule); }
 .cena__texto .container { max-width: 64rem; }
 .cena__aviso {
   position: absolute; left: var(--gutter); bottom: var(--space-4);
-  max-width: 44ch; font-size: var(--step--1); color: #e3dacb;
+  max-width: 44ch; font-size: var(--step--1); color: var(--color-rule);
 }
 
 /* A ficha sai de dentro da janela escolhida */
@@ -94,10 +94,18 @@
 
 @media (max-width: 55.99em) {
   .cena { height: clamp(24rem, 62vh, 34rem); }
-  .cena .ficha { position: static; transform: none; width: auto; margin: var(--space-4) var(--gutter) 0; }
+  /* Encostada na base e ainda posicionada: o canvas e absoluto e pinta por cima
+     de qualquer filho fora de posicionamento, entao com position static a ficha
+     sumia atras dele. Em baixo ela tambem deixa a maquete a vista. */
+  .cena .ficha, .cena[data-modo="vista"] .ficha {
+    position: absolute; inset: auto var(--gutter) var(--space-3);
+    width: auto; transform: none; margin: 0;
+    padding: var(--space-3); gap: var(--space-2);
+  }
   .cena .ficha::after { display: none; }
+  .cena .ficha__tipo { font-size: var(--step-1); }
+  .cena .ficha__dados { gap: var(--space-2); }
   .cena__texto { align-content: start; padding-top: var(--space-6); }
-  .cena[data-modo="vista"] .ficha { left: auto; bottom: auto; }
 }
 
 /* Listagem de quartos: cartao delimitado de verdade, com superficie propria,
@@ -360,5 +368,23 @@ main { --section-gap: clamp(3rem, 5vw, 4.25rem); }
    Em paginas curtas, como contato, o conteudo acabava antes do fim da janela e
    o rodape parava no meio, com o fundo do corpo aparecendo embaixo dele. */
 body { min-height: 100svh; display: flex; flex-direction: column; }
-body > main { flex: 1 0 auto; }
+body > main { flex: 1 0 auto; display: flex; flex-direction: column; }
 .site-footer { margin-top: auto; }
+
+/* Pagina curta, de uma secao so, como contato: o conteudo se centraliza no
+   espaco que sobra em vez de grudar no topo. Quando o conteudo e mais alto que
+   a tela nao ha espaco livre, as margens automaticas zeram e nada e cortado. */
+body > main > .section:only-child { margin-block: auto; }
+
+/* Cabecalho sobre a cena: transparente no topo, solido ao rolar.
+   As cores aqui sao exatamente as que o texto da cena ja usa, para nao
+   acrescentar cor nova ao orcamento da paleta. */
+.site-header { transition: background 320ms ease, border-color 320ms ease; }
+.site-header[data-sobre="true"] {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+.site-header[data-sobre="true"] .brand { color: var(--color-bg); }
+.site-header[data-sobre="true"] .site-nav a:not(.btn) { color: var(--color-rule); }
+.site-header[data-sobre="true"] .site-nav a[aria-current="page"] { color: #f0c489; }
+.site-header[data-sobre="true"] .nav-toggle { color: var(--color-bg); }

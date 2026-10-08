@@ -98,7 +98,34 @@
     }, { threshold: 0 }).observe(intro);
   }
 
+
+  /* Cabecalho transparente enquanto a cena escura esta atras dele, voltando a
+     cor solida quando a cena termina. So roda em pagina que tem cena: nas
+     outras o fundo logo abaixo do cabecalho e claro e texto claro sumiria.
+     Sem script o cabecalho fica solido, que e o estado legivel. */
+  function headerSobreCena() {
+    var header = document.querySelector('.site-header');
+    var cena = document.querySelector('.cena');
+    if (!header || !cena || !('IntersectionObserver' in window)) { return; }
+
+    // Sentinela no rodape da cena: enquanto ela estiver abaixo do cabecalho,
+    // ha cena atras dele. Criada por JS para nao mexer na marcacao.
+    var sentinela = document.createElement('div');
+    sentinela.setAttribute('aria-hidden', 'true');
+    sentinela.style.cssText = 'position:absolute;left:0;bottom:0;width:1px;height:1px;pointer-events:none;';
+    cena.appendChild(sentinela);
+
+    header.setAttribute('data-sobre', 'true');
+    var obs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        header.setAttribute('data-sobre', e.isIntersecting ? 'true' : 'false');
+      });
+    }, { rootMargin: '-' + Math.round(header.offsetHeight) + 'px 0px 0px 0px', threshold: 0 });
+    obs.observe(sentinela);
+  }
+
   reveal();
   gallery();
   priceBar();
+  headerSobreCena();
 })();
