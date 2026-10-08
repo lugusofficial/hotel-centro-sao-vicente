@@ -517,9 +517,14 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // sozinho ao longo do ano: em dezembro as 18h30 ainda e dia em Sao Vicente.
   // A posicao solar de verdade continua em uso, mas so para dizer na ficha de
   // que horas a que horas cada fachada pega sol.
-  const ENTARDECER = { elevacao: -4.5, azimute: 252 };
+  // Elevacao e azimute escolhidos, mais o quanto as janelas ja estao acesas.
+  // Os dois nao saem da mesma conta de proposito: o ceu dourado pede o sol
+  // ainda acima do horizonte, e a janela acesa pede o sol bem abaixo. Num
+  // estado fixo e escolhido, nada obriga as duas coisas a virem do mesmo
+  // numero, e amarra-las dava ou ceu escuro demais ou janela apagada.
+  const ENTARDECER = { elevacao: 1.5, azimute: 252, noite: 0.72 };
 
-  function aplicarCeu({ elevacao, azimute }) {
+  function aplicarCeu({ elevacao, azimute, noite: noiteFixa }) {
     const d = direcaoDoSol(elevacao, azimute);
 
     sol.position.set(d.x * distSol, Math.max(d.y, -0.2) * distSol, d.z * distSol);
@@ -538,7 +543,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     ambiente.groundColor.setHex(misturar(0x3a2e24, 0x8a7a63, forca));
     ambiente.intensity = 0.55 + 0.6 * forca;
 
-    noite = Math.max(0, Math.min(1, (2 - elevacao) / 10));
+    noite = noiteFixa !== undefined ? noiteFixa
+      : Math.max(0, Math.min(1, (2 - elevacao) / 10));
     repintarTudo();
     renderer.shadowMap.needsUpdate = true;
   }
