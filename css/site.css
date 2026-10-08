@@ -476,14 +476,32 @@ body > main { flex: 1 0 auto; display: flex; flex-direction: column; }
 body > main > .section:only-child { margin-block: auto; }
 
 /* Cabecalho sobre a cena: transparente no topo, solido ao rolar.
-   As cores aqui sao exatamente as que o texto da cena ja usa, para nao
-   acrescentar cor nova ao orcamento da paleta. */
-.site-header { transition: background 320ms ease, border-color 320ms ease; }
+
+   So uma propriedade troca, --tinta, e marca e links a seguem. Antes cada
+   elemento tinha a sua declaracao de cor no estado escuro, e elas chegavam
+   fora de sincronia durante a transicao: a marca ja estava clara enquanto os
+   links ainda estavam escuros, sobre um fundo que ainda nao tinha ido embora. */
+.site-header {
+  --tinta: var(--color-text);
+}
+/* Sem transicao, de proposito. Com fundo e texto cruzando em 260 ms existe um
+   instante em que o creme do texto esta sobre o creme meio opaco do fundo e o
+   menu some. A troca e instantanea e acontece exatamente quando a cena sai de
+   tras do cabecalho, que ja e uma quebra visual: ninguem ve um salto, ve o
+   cabecalho assentando sobre o corpo da pagina. */
 .site-header[data-sobre="true"] {
+  --tinta: var(--color-bg);
   background: transparent;
   border-bottom-color: transparent;
 }
-.site-header[data-sobre="true"] .brand { color: var(--color-bg); }
-.site-header[data-sobre="true"] .site-nav a:not(.btn) { color: var(--color-rule); }
-.site-header[data-sobre="true"] .site-nav a[aria-current="page"] { color: #f0c489; }
-.site-header[data-sobre="true"] .nav-toggle { color: var(--color-bg); }
+.site-header .brand,
+.site-header .site-nav a:not(.btn) { color: var(--tinta); }
+
+/* O botao do menu nao acompanha a troca: e uma pastilha escura fixa, com o
+   mesmo contraste sobre a faixa clara e sobre a cena. Cor que muda num botao
+   pequeno so pisca. */
+.nav-toggle {
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: var(--space-2) var(--space-3);
+}

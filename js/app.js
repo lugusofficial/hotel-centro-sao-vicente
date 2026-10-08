@@ -99,35 +99,62 @@
   }
 
 
-  /* Cabecalho transparente enquanto a cena escura esta atras dele, voltando a
-     cor solida quando a cena termina. So roda em pagina que tem cena: nas
-     outras o fundo logo abaixo do cabecalho e claro e texto claro sumiria.
+  /* Cabecalho sobre a cena. Duas regras, e so duas:
+       1. ha cena atras dele  -> estado claro, fundo transparente;
+       2. menu aberto         -> estado solido, sempre, porque a lista se abre
+          por cima do predio e precisaria de fundo proprio para ser legivel.
+
+     O estado e recalculado do zero a cada quadro de rolagem, a partir de onde
+     a cena esta na tela. Antes vinha de um IntersectionObserver com sentinela,
+     e isso dava dois defeitos: a primeira medicao acontecia antes do layout
+     fechar e travava no estado errado ate a primeira rolagem, e descer e
+     subir nao davam o mesmo resultado no mesmo ponto. Calcular do zero e
+     simetrico por construcao.
+
      Sem script o cabecalho fica solido, que e o estado legivel. */
   function headerSobreCena() {
     var header = document.querySelector('.site-header');
     var cena = document.querySelector('.cena');
-    if (!header || !cena || !('IntersectionObserver' in window)) { return; }
+    var nav = document.getElementById('site-nav');
+    if (!header || !cena) { return; }
 
-    // Sentinela no rodape da cena: enquanto ela estiver abaixo do cabecalho,
-    // ha cena atras dele. Criada por JS para nao mexer na marcacao.
-    var sentinela = document.createElement('div');
-    sentinela.setAttribute('aria-hidden', 'true');
-    sentinela.style.cssText = 'position:absolute;left:0;bottom:0;width:1px;height:1px;pointer-events:none;';
-    cena.appendChild(sentinela);
+    // Limite de rolagem a partir do qual nao ha mais cena atras do cabecalho.
+    // Guardar o numero em vez de medir a cena a cada rolagem: ler a geometria
+    // dentro do evento de scroll forca o navegador a refazer o layout a cada
+    // quadro, que e justamente o que trava a rolagem em celular fraco.
+    var altura = 0;
+    var limite = 0;
+    function medir() {
+      // A cena sobe por tras do cabecalho fechado. Com o menu aberto ele fica
+      // varias vezes mais alto, e medir nessa hora faria a cena saltar; por
+      // isso a medida so e refeita com o menu fechado.
+      if (nav && nav.getAttribute('data-open') === 'true') { return; }
+      altura = Math.round(header.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--altura-header', altura + 'px');
+      limite = cena.getBoundingClientRect().bottom + window.scrollY - altura;
+    }
 
-    // A cena sobe por tras do cabecalho: sem isso ele fica transparente sobre o
-    // fundo claro da pagina e o texto claro some. A medida vai para o CSS como
-    // variavel, com padrao 0px, entao sem script nada se desloca.
-    var alturaHeader = Math.round(header.offsetHeight);
-    document.documentElement.style.setProperty('--altura-header', alturaHeader + 'px');
+    function avaliar() {
+      var aberto = nav && nav.getAttribute('data-open') === 'true';
+      header.setAttribute('data-sobre',
+        (!aberto && window.scrollY < limite) ? 'true' : 'false');
+    }
 
-    header.setAttribute('data-sobre', 'true');
-    var obs = new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        header.setAttribute('data-sobre', e.isIntersecting ? 'true' : 'false');
+    medir();
+    avaliar();
+    window.addEventListener('scroll', avaliar, { passive: true });
+    window.addEventListener('resize', function () { medir(); avaliar(); });
+    // A fonte de titulo muda a altura do cabecalho quando chega.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { medir(); avaliar(); });
+    }
+    // O menu e do js/main.js, que e gerado pelo scaffold e vale para todos os
+    // sites. Em vez de edita-lo, aqui so se escuta o atributo que ele troca.
+    if (nav && 'MutationObserver' in window) {
+      new MutationObserver(avaliar).observe(nav, {
+        attributes: true, attributeFilter: ['data-open'],
       });
-    }, { rootMargin: '-' + alturaHeader + 'px 0px 0px 0px', threshold: 0 });
-    obs.observe(sentinela);
+    }
   }
 
   reveal();
