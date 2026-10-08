@@ -1,0 +1,147 @@
+/* Section styles for this site. Base rules and tokens live in base.css and tokens.css: use the custom properties, never raw values. */
+/* Estilo quiet luxury: superficies calmas, reguas finas, um acento dourado. Sem cartoes com sombra. */
+
+/* Reveal de rolagem. A classe no <html> vem do js/app.js, entao sem script tudo aparece. */
+.js-reveal [data-reveal] { opacity: 0; transform: translateY(16px); transition: opacity 700ms ease, transform 700ms ease; }
+.js-reveal [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* Cabecalho: pagina atual marcada */
+.site-nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 0.3em; }
+
+/* Migalhas */
+.crumbs { padding-block: var(--space-4); }
+.crumbs ol { width: min(100% - 2 * var(--gutter), var(--container)); margin-inline: auto; display: flex; flex-wrap: wrap; gap: var(--space-2); font-size: var(--step--1); color: var(--color-muted); }
+.crumbs li + li::before { content: "/"; margin-right: var(--space-2); color: var(--color-rule); }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+
+/* Hero da home */
+.hero { padding-block: var(--space-8) var(--space-7); display: grid; gap: var(--space-7); }
+.hero__inner { display: grid; gap: var(--space-5); justify-items: start; }
+.hero__inner h1 { max-width: 15ch; }
+.hero__inner .lead { max-width: 40ch; }
+.hero__media { border-radius: var(--radius-lg); overflow: hidden; }
+.hero__media img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: inherit; }
+@media (min-width: 56em) {
+  .hero { grid-template-columns: 5fr 7fr; align-items: center; gap: var(--space-8); padding-block: var(--space-9); }
+  .hero__inner { width: auto; margin-inline: 0; padding-left: var(--gutter); justify-self: end; max-width: 34rem; }
+  .hero__media { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+}
+
+/* Listagem de quartos */
+.rooms { display: grid; gap: var(--space-7); }
+.rooms__item { max-width: none; display: grid; gap: var(--space-3); }
+.rooms__link { text-decoration: none; display: grid; gap: var(--space-3); }
+.rooms__link img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-md); transition: opacity 250ms ease; }
+.rooms__link:hover img { opacity: 0.88; }
+.rooms__link h2, .rooms__link h3 { font-size: var(--step-1); }
+.rooms__link:hover h2, .rooms__link:hover h3 { color: var(--color-accent); }
+.rooms__item p { max-width: 42ch; }
+@media (min-width: 40em) { .rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 72em) { .rooms { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-6); } }
+
+/* Fichas tecnicas */
+.specs { display: grid; gap: var(--space-3); }
+.specs div { display: grid; gap: var(--space-1); }
+.specs dt { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
+.specs dd { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+.specs--inline { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.specs--inline dd { font-size: var(--step-0); }
+.specs--stack dd { font-size: var(--step-0); }
+@media (min-width: 40em) { .specs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); } .specs--stack { grid-template-columns: 1fr; } }
+
+/* Pagina de quarto */
+.room { display: grid; gap: var(--space-7); align-items: start; }
+.room__intro h1 { max-width: 14ch; }
+.room__intro .lead { max-width: 40ch; }
+.fineprint { font-size: var(--step--1); max-width: 46ch; }
+@media (min-width: 64em) { .room { grid-template-columns: 5fr 7fr; gap: var(--space-8); } }
+
+/* Galeria */
+.gal { display: grid; gap: var(--space-4); }
+.gal__viewport { overflow: hidden; border-radius: var(--radius-lg); }
+.gal__track { display: flex; transition: transform 520ms cubic-bezier(0.33, 1, 0.68, 1); }
+.gal__slide { flex: 0 0 100%; min-width: 100%; max-width: none; }
+.gal__slide img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; display: block; }
+.gal__controls { display: flex; align-items: center; gap: var(--space-4); }
+.gal__arrow {
+  background: var(--color-surface); border: 0; border-radius: var(--radius-pill);
+  min-width: 2.75rem; min-height: 2.75rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--color-text); transition: background 200ms ease, color 200ms ease;
+}
+.gal__arrow:hover { background: var(--color-accent); color: var(--color-on-accent); }
+/* Controles da maquete: texto sublinhado, sem caixa, com area de toque de 44 px */
+.maquete__btn {
+  background: none; border: 0; padding: var(--space-3) var(--space-2);
+  min-height: 2.75rem; min-width: 2.75rem;
+  color: var(--color-text); text-decoration: underline; text-underline-offset: 0.3em;
+  transition: color 200ms ease;
+}
+.maquete__btn:hover { color: var(--color-accent); }
+.gal__arrow .icon--prev { transform: rotate(180deg); }
+.gal__dots { display: flex; gap: var(--space-2); margin-inline: auto 0; }
+.gal__dots li { max-width: none; display: flex; }
+.gal__dot { background: var(--color-rule); border: 0; border-radius: var(--radius-pill); width: 0.5rem; height: 0.5rem; padding: 0; transition: width 250ms ease, background 250ms ease; }
+.gal__dot[aria-current="true"] { background: var(--color-accent); width: 1.5rem; }
+.gal:not(.is-live) .gal__controls { display: none; }
+.gal:not(.is-live) .gal__track { flex-direction: column; gap: var(--space-4); }
+
+/* Maquete 3D */
+.maquete { display: grid; gap: var(--space-6); align-items: start; }
+.maquete__stage { position: relative; display: grid; gap: var(--space-4); }
+.maquete__canvas { width: 100%; height: clamp(16rem, 44vw, 26rem); display: block; border-radius: var(--radius-lg); background: var(--color-surface); touch-action: pan-y; }
+.maquete__cover { position: absolute; inset: 0; display: grid; place-items: center; border-radius: var(--radius-lg); overflow: hidden; height: clamp(16rem, 44vw, 26rem); }
+.maquete__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.maquete__start { position: relative; }
+.maquete[data-ready="true"] .maquete__cover { display: none; }
+.maquete__controls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.maquete__btn { font-size: var(--step--1); min-height: 2.75rem; }
+.maquete__status { min-height: 1.5em; font-size: var(--step--1); color: var(--color-muted); margin: 0; }
+.maquete__fallback { font-size: var(--step--1); color: var(--color-muted); max-width: 48ch; }
+.maquete__side h3 { font-size: var(--step-1); }
+.maquete__list { display: grid; gap: var(--space-3); }
+.maquete__list li { max-width: 40ch; padding-left: var(--space-4); position: relative; }
+.maquete__list li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 0.5rem; height: 1px; background: var(--color-accent); }
+@media (min-width: 64em) { .maquete { grid-template-columns: 7fr 5fr; gap: var(--space-8); } }
+
+/* Comodidades */
+.amen { display: grid; gap: var(--space-3); }
+.amen li { max-width: none; padding-left: var(--space-4); position: relative; }
+.amen li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 0.5rem; height: 1px; background: var(--color-accent); }
+@media (min-width: 40em) { .amen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-6); } }
+
+/* Outros quartos */
+.others { display: grid; gap: var(--space-3); }
+.others li { max-width: none; padding-block: var(--space-3); border-top: 1px solid var(--color-rule); }
+.others a { text-decoration: none; font-family: var(--font-display); font-size: var(--step-1); }
+.others a:hover { color: var(--color-accent); text-decoration: underline; }
+
+/* Barra fixa de preco no celular */
+.pricebar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding: var(--space-3) var(--gutter);
+  background: var(--color-bg); border-top: 1px solid var(--color-rule);
+  transform: translateY(110%); transition: transform 280ms ease;
+}
+.pricebar.is-shown { transform: none; }
+.pricebar__price { margin: 0; font-family: var(--font-display); }
+@media (min-width: 64em) { .pricebar { display: none; } }
+
+/* Paginas simples */
+.blocks { display: grid; gap: var(--space-6); }
+.blocks li { max-width: none; }
+.blocks h2 { font-size: var(--step-1); }
+.blocks p { max-width: 50ch; }
+@media (min-width: 48em) { .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-7); } }
+
+.shot { margin: 0; border-radius: var(--radius-lg); overflow: hidden; }
+.shot img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+
+/* Contato */
+.facts { display: grid; gap: var(--space-5); }
+.facts li { display: grid; gap: var(--space-1); max-width: none; }
+.facts__value { font-family: var(--font-display); font-size: var(--step-1); text-decoration: none; }
+a.facts__value:hover { color: var(--color-accent); text-decoration: underline; }
+@media (min-width: 40em) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-7); } }
