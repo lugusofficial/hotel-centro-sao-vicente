@@ -88,10 +88,25 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // Ceu anoitecendo por cima, calor do poente refletindo do chao
   scene.add(new THREE.HemisphereLight(0x3b4877, 0x7a5436, 0.9));
 
+  // Revestimento vem de imagem: o predio real e de tijolo, e cor chapada num
+  // bloco deste tamanho le como maquete de papel. Uma textura por escala, nao
+  // um clone: clone feito antes do download fica sem imagem para sempre.
+  const carregador = new THREE.TextureLoader();
+  function textura(arquivo, metros, u, v) {
+    const t = carregador.load(`assets/${arquivo}`, () => { invalidar(); });
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(Math.max(1, Math.round(u / metros)), Math.max(1, Math.round(v / metros)));
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  }
+
   const M = {
-    concreto: new THREE.MeshStandardMaterial({ color: 0xc6bba6, roughness: 0.8, metalness: 0.03 }),
+    concreto: new THREE.MeshStandardMaterial({ color: 0xb9a893, roughness: 0.85, metalness: 0 }),
     faixa: new THREE.MeshStandardMaterial({ color: 0xa7967a, roughness: 0.58, metalness: 0.08 }),
-    base: new THREE.MeshStandardMaterial({ color: 0x332d27, roughness: 0.6, metalness: 0.2 }),
+    base: new THREE.MeshStandardMaterial({ color: 0x4a443d, roughness: 0.55, metalness: 0.15 }),
+    soleira: new THREE.MeshStandardMaterial({ color: 0x8e8070, roughness: 0.7, metalness: 0.05 }),
+    vizinho: new THREE.MeshStandardMaterial({ color: 0x272833, roughness: 0.95, metalness: 0 }),
     esquadria: new THREE.MeshStandardMaterial({ color: 0x1f1c18, roughness: 0.45, metalness: 0.5 }),
     // A janela e a propria luz: MeshBasicMaterial ignora as luzes da cena, entao
     // a cor da instancia vira brilho direto. Quarto livre fica quente e aceso,
@@ -135,22 +150,69 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   chao.receiveShadow = true;
   scene.add(chao);
 
-  const terreo = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.6, D.terreo, prof + 0.6), M.base);
+  // O terreo era MAIS LARGO que a torre, o que da aspecto de bolo. No predio
+  // real ele e recuado e escuro, e a torre avanca por cima: a sombra dessa
+  // aba e o que diz "predio de rua" antes de qualquer outro detalhe.
+  const RECUO = 1.5;
+  M.base.map = textura('tex-pedra-base.jpg', 2.0, largura - 2 * RECUO, D.terreo);
+  M.base.needsUpdate = true;  // sair de sem mapa para com mapa recompila o shader
+  const terreo = new THREE.Mesh(
+    new THREE.BoxGeometry(largura - 2 * RECUO, D.terreo, prof - 2 * RECUO), M.base);
   terreo.position.y = D.terreo / 2;
   terreo.castShadow = terreo.receiveShadow = true;
   predio.add(terreo);
 
+  // Aba da torre sobre o terreo recuado
+  const aba = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.4, 0.5, prof + 0.4), M.faixa);
+  aba.position.y = D.terreo - 0.25;
+  aba.castShadow = aba.receiveShadow = true;
+  predio.add(aba);
+
   // Vitrine acesa do terreo: a recepcao vista da rua
   const vitrine = new THREE.Mesh(
-    new THREE.BoxGeometry(largura * 0.74, 2.3, 0.1),
+    new THREE.BoxGeometry((largura - 2 * RECUO) * 0.8, 2.4, 0.1),
     new THREE.MeshStandardMaterial({ color: 0xffdcae, emissive: 0xffc98a, emissiveIntensity: 1.6 }));
-  vitrine.position.set(0, D.terreo * 0.5, prof / 2 + 0.36);
+  vitrine.position.set(0, D.terreo * 0.48, (prof - 2 * RECUO) / 2 + 0.06);
   predio.add(vitrine);
 
   const geoJanela = new THREE.BoxGeometry(2.05, 1.42, 0.1);
   const geoMoldura = new THREE.BoxGeometry(2.34, 1.72, 0.12);
   const matriz = new THREE.Matrix4();
   const cor = new THREE.Color();
+
+  // Uma lista de materiais por face: o tijolo tem de ter o mesmo tamanho na
+  // frente e na lateral, e a caixa tem larguras diferentes nos dois eixos.
+  // Ordem das faces na BoxGeometry: +X, -X, +Y, -Y, +Z, -Z.
+  const alturaCorpo = D.peDireito - 0.34;
+  const tijoloLado = M.concreto.clone();
+  tijoloLado.map = textura('tex-tijolo.jpg', 2.4, prof, alturaCorpo);
+  tijoloLado.needsUpdate = true;
+  const tijoloFrente = M.concreto.clone();
+  tijoloFrente.map = textura('tex-tijolo.jpg', 2.4, largura, alturaCorpo);
+  tijoloFrente.needsUpdate = true;
+  const matCorpo = [tijoloLado, tijoloLado, M.concreto, M.concreto, tijoloFrente, tijoloFrente];
+  const matCorpoFantasma = [F.concreto, F.concreto, F.concreto, F.concreto, F.concreto, F.concreto];
+
+  // Soleira sob cada janela: e o que faz o vao parecer cavado na parede em vez
+  // de colado nela.
+  const geoSoleira = new THREE.BoxGeometry(2.5, 0.12, 0.34);
+
+  // Ponta arredondada. O eixo fica na quina do volume e o raio e a metade da
+  // profundidade, entao as duas bordas da meia cana encostam exatamente nas
+  // quinas da caixa e o encontro nao aparece. As janelas da ultima posicao de
+  // cada fachada saem do plano e passam a acompanhar a curva, inclinadas: e o
+  // que o predio real tem de mais reconhecivel depois do tijolo.
+  const BAIA_R = prof / 2;
+  const BAIA_X = largura / 2;
+  const BAIA_ANG = THREE.MathUtils.degToRad(40);
+  const ULTIMA = porFachada - 1;
+  // No CylinderGeometry do three o angulo corre de +Z para +X, entao comecar em
+  // zero e varrer meia volta da a metade virada para a ponta.
+  const geoBaia = new THREE.CylinderGeometry(
+    BAIA_R, BAIA_R, alturaCorpo, 28, 1, true, 0, Math.PI);
+  const tijoloBaia = M.concreto.clone();
+  tijoloBaia.map = textura('tex-tijolo.jpg', 2.4, Math.PI * BAIA_R, alturaCorpo);
+  tijoloBaia.needsUpdate = true;
 
   const andares = [];
   const porQuarto = new Map();
@@ -161,48 +223,85 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     grupo.position.y = baseY;
     predio.add(grupo);
 
-    const corpo = new THREE.Mesh(new THREE.BoxGeometry(largura, D.peDireito - 0.34, prof), M.concreto);
+    const corpo = new THREE.Mesh(new THREE.BoxGeometry(largura, D.peDireito - 0.34, prof), matCorpo);
     corpo.position.y = (D.peDireito - 0.34) / 2;
     corpo.castShadow = corpo.receiveShadow = true;
     grupo.add(corpo);
+
+    const baia = new THREE.Mesh(geoBaia, tijoloBaia);
+    baia.position.set(BAIA_X, alturaCorpo / 2, 0);
+    baia.castShadow = baia.receiveShadow = true;
+    grupo.add(baia);
 
     const faixa = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.5, 0.34, prof + 0.5), M.faixa);
     faixa.position.y = D.peDireito - 0.17;
     faixa.castShadow = faixa.receiveShadow = true;
     grupo.add(faixa);
 
+    // A cinta tambem precisa dobrar a ponta, senao a curva fica sem remate.
+    const faixaBaia = new THREE.Mesh(
+      new THREE.CylinderGeometry(BAIA_R + 0.25, BAIA_R + 0.25, 0.34, 28, 1, true, 0, Math.PI),
+      M.faixa);
+    faixaBaia.position.set(BAIA_X, D.peDireito - 0.17, 0);
+    faixaBaia.castShadow = faixaBaia.receiveShadow = true;
+    grupo.add(faixaBaia);
+
     const n = andar.quartos.length;
     const janelas = new THREE.InstancedMesh(geoJanela, M.janela, n);
     const molduras = new THREE.InstancedMesh(geoMoldura, M.esquadria, n);
-    janelas.frustumCulled = molduras.frustumCulled = false;
-    molduras.castShadow = true;
+    const soleiras = new THREE.InstancedMesh(geoSoleira, M.soleira, n);
+    janelas.frustumCulled = molduras.frustumCulled = soleiras.frustumCulled = false;
+    molduras.castShadow = soleiras.castShadow = true;
 
     const meta = [];
     const locais = [];
+    const normais = [];
     andar.quartos.forEach((q, i) => {
       const sul = q.fachada === 'S';
       const x = (q.posicaoNaFachada - (porFachada - 1) / 2) * D.larguraPorQuarto;
-      const z = sul ? prof / 2 + 0.08 : -(prof / 2 + 0.08);
-      const y = (D.peDireito - 0.34) / 2;
-      matriz.makeRotationY(sul ? 0 : Math.PI);
-      matriz.setPosition(x, y, z);
+      // A esquadria fica ATRAS do vidro, nao na frente: ela e uma caixa cheia,
+      // nao um aro, entao na frente tapa a luz da janela e o predio apaga.
+      // A profundidade do vao vem da soleira embaixo e da sombra que ela joga.
+      const s = sul ? 1 : -1;
+      const y = alturaCorpo / 2;
+      // Na ponta a janela gira com a curva; no plano ela so olha para a frente
+      // ou para tras. Nos dois casos a esquadria fica ATRAS do vidro: ela e uma
+      // caixa cheia, nao um aro, e na frente taparia a luz da janela.
+      const naBaia = q.posicaoNaFachada === ULTIMA;
+      const ang = naBaia ? (sul ? BAIA_ANG : Math.PI - BAIA_ANG) : (sul ? 0 : Math.PI);
+      const nx = Math.sin(ang), nz = Math.cos(ang);
+      const cx = naBaia ? BAIA_X : x;
+      const raioBase = naBaia ? BAIA_R : prof / 2;
+      const ponto = (fora) => [cx + nx * (raioBase + fora), nz * (raioBase + fora)];
+
+      matriz.makeRotationY(ang);
+      const [jx, jz] = ponto(0.07);
+      matriz.setPosition(jx, y, jz);
       janelas.setMatrixAt(i, matriz);
-      matriz.setPosition(x, y, sul ? z - 0.04 : z + 0.04);
+      const [mx, mz] = ponto(0.02);
+      matriz.setPosition(mx, y, mz);
       molduras.setMatrixAt(i, matriz);
+      const [sx, sz] = ponto(0.14);
+      matriz.setPosition(sx, y - 0.95, sz);
+      soleiras.setMatrixAt(i, matriz);
+      normais.push(new THREE.Vector3(nx, 0, nz));
       janelas.setColorAt(i, cor.setHex(q.status === 'disponivel' ? COR.disponivel : COR.indisponivel));
       meta.push(q);
-      locais.push(new THREE.Vector3(x, y, z));
+      locais.push(new THREE.Vector3(jx, y, jz));
       porQuarto.set(q.numero, { andarIdx: ai, instanceId: i });
     });
 
     janelas.instanceMatrix.needsUpdate = true;
     molduras.instanceMatrix.needsUpdate = true;
+    soleiras.instanceMatrix.needsUpdate = true;
     janelas.instanceColor.needsUpdate = true;
     janelas.computeBoundingSphere();
     molduras.computeBoundingSphere();
-    grupo.add(molduras, janelas);
+    soleiras.computeBoundingSphere();
+    grupo.add(molduras, soleiras, janelas);
 
-    andares.push({ grupo, corpo, faixa, molduras, janelas, meta, locais, baseY, alvoY: baseY, fantasma: false });
+    andares.push({ grupo, corpo, baia, faixa, faixaBaia, molduras, soleiras, janelas,
+                   meta, locais, normais, baseY, alvoY: baseY, fantasma: false });
   });
 
   const topo = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.7, 0.8, prof + 0.7), M.faixa);
@@ -210,6 +309,30 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   topo.position.y = topoBase;
   topo.castShadow = true;
   predio.add(topo);
+
+  const topoBaia = new THREE.Mesh(
+    new THREE.CylinderGeometry(BAIA_R + 0.35, BAIA_R + 0.35, 0.8, 28, 1, true, 0, Math.PI),
+    M.faixa);
+  topoBaia.position.set(BAIA_X, topoBase, 0);
+  topoBaia.castShadow = true;
+  predio.add(topoBaia);
+
+  // Predios vizinhos. Sem eles o hotel flutua sozinho num plano vazio e le
+  // como objeto; encostado em dois blocos cegos ele le como predio de rua, que
+  // e o que o predio real e. Ficam fora do grupo do predio de proposito: o
+  // enquadramento da camera mede so o hotel, senao a cena abriria para caber a
+  // quadra inteira.
+  const vizinhanca = new THREE.Group();
+  vizinhanca.rotation.y = predio.rotation.y;
+  scene.add(vizinhanca);
+  [[-1, 0.78, 11], [1, 0.92, 13]].forEach(([lado, fator, larg]) => {
+    const h = alturaTotal * fator;
+    const b = new THREE.Mesh(new THREE.BoxGeometry(larg, h, prof * 0.92), M.vizinho);
+    const recuo = lado > 0 ? BAIA_R + 1.2 : 0;   // a ponta avanca para a direita
+    b.position.set(lado * (largura / 2 + recuo + larg / 2 - 0.3), h / 2, 0);
+    b.castShadow = b.receiveShadow = true;
+    vizinhanca.add(b);
+  });
 
   sol.target.position.set(0, alturaTotal * 0.45, 0);
   sol.target.updateMatrixWorld();
@@ -224,7 +347,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   function posicionarAlvo() {
     const retrato = camera.aspect < 1.1;
     alvo.set(retrato ? -largura * 0.06 : -largura * 0.52,
-             alturaTotal * (retrato ? 0.80 : 0.46), 0);
+             alturaTotal * (retrato ? 0.90 : 0.46), 0);
   }
 
   // Distancia derivada do predio e do campo de visao, sem numero magico.
@@ -372,11 +495,15 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   function definirFantasma(a, ligar) {
     if (a.fantasma === ligar) return;
     a.fantasma = ligar;
-    a.corpo.material = ligar ? F.concreto : M.concreto;
+    a.corpo.material = ligar ? matCorpoFantasma : matCorpo;
+    a.baia.material = ligar ? F.concreto : tijoloBaia;
     a.faixa.material = ligar ? F.faixa : M.faixa;
+    a.faixaBaia.material = ligar ? F.faixa : M.faixa;
     a.molduras.material = ligar ? F.esquadria : M.esquadria;
+    a.soleiras.material = ligar ? F.faixa : M.soleira;
     a.janelas.material = ligar ? F.janela : M.janela;
     a.corpo.castShadow = a.faixa.castShadow = a.molduras.castShadow = !ligar;
+    a.soleiras.castShadow = a.baia.castShadow = a.faixaBaia.castShadow = !ligar;
   }
 
   // Afastamento de SEP pes-direitos por andar de distancia do escolhido. O
@@ -428,8 +555,10 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     return predio.localToWorld(vTmp.clone());
   }
   function normalDaJanela(ref) {
-    const q = andares[ref.andarIdx].meta[ref.instanceId];
-    return new THREE.Vector3(0, 0, q.fachada === 'S' ? 1 : -1)
+    // Guardada na montagem: na ponta arredondada a janela nao olha para a
+    // fachada, olha para a tangente da curva, entao deduzir pela letra N ou S
+    // deixaria a camera de esguelha nesses quartos.
+    return andares[ref.andarIdx].normais[ref.instanceId].clone()
       .applyQuaternion(predio.quaternion).normalize();
   }
   function poseQuarto(ref) {
