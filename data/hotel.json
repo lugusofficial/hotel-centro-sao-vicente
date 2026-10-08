@@ -1,0 +1,1061 @@
+{
+ "nome": "Sua Marca",
+ "cidade": "São Vicente",
+ "lat": -23.9631,
+ "lng": -46.3922,
+ "rotacaoGraus": 12,
+ "quartosPorFachada": 7,
+ "dimensoes": {
+  "larguraPorQuarto": 3.9,
+  "profundidade": 13.0,
+  "peDireito": 3.1,
+  "terreo": 4.4
+ },
+ "tipos": {
+  "solteiro": {
+   "nome": "Quarto Solteiro",
+   "base": 150,
+   "pagina": "quarto-solteiro.html",
+   "hosp": 1,
+   "area": 12
+  },
+  "casal": {
+   "nome": "Quarto Casal",
+   "base": 210,
+   "pagina": "quarto-casal.html",
+   "hosp": 2,
+   "area": 18
+  },
+  "superior": {
+   "nome": "Quarto Superior",
+   "base": 290,
+   "pagina": "quarto-superior.html",
+   "hosp": 2,
+   "area": 24
+  },
+  "familia": {
+   "nome": "Quarto Família",
+   "base": 360,
+   "pagina": "quarto-familia.html",
+   "hosp": 4,
+   "area": 28
+  }
+ },
+ "andares": [
+  {
+   "numero": 1,
+   "quartos": [
+    {
+     "numero": 101,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 170,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 102,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 230,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 103,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 230,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 104,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 310,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 105,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 230,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 106,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 170,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 107,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 380,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 108,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 150,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 109,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 210,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 110,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 210,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 111,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 290,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 112,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 210,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 113,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 150,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 114,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 290,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    }
+   ]
+  },
+  {
+   "numero": 2,
+   "quartos": [
+    {
+     "numero": 201,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 185,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 202,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 245,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 203,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 245,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 204,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 325,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 205,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 245,
+     "acessivel": true,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 206,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 185,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 207,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 395,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 208,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 165,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 209,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 225,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 210,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 225,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 211,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 305,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 212,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 225,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 213,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 165,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 214,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 305,
+     "acessivel": true,
+     "vista": "cidade",
+     "status": "disponivel"
+    }
+   ]
+  },
+  {
+   "numero": 3,
+   "quartos": [
+    {
+     "numero": 301,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 200,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 302,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 260,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 303,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 260,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 304,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 340,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 305,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 260,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 306,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 200,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 307,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 410,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 308,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 180,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 309,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 240,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 310,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 240,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 311,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 320,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 312,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 240,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 313,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 180,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 314,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 320,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    }
+   ]
+  },
+  {
+   "numero": 4,
+   "quartos": [
+    {
+     "numero": 401,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 215,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 402,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 275,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 403,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 275,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 404,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 355,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 405,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 275,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 406,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 215,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 407,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 425,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 408,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 195,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 409,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 255,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 410,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 255,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 411,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 335,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 412,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 255,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 413,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 195,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 414,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 335,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "indisponivel"
+    }
+   ]
+  },
+  {
+   "numero": 5,
+   "quartos": [
+    {
+     "numero": 501,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 230,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 502,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 290,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 503,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 290,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 504,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 370,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 505,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 290,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 506,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 230,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 507,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 440,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 508,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 210,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 509,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 270,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 510,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 270,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 511,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 350,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 512,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 270,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 513,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 210,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 514,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 350,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    }
+   ]
+  },
+  {
+   "numero": 6,
+   "quartos": [
+    {
+     "numero": 601,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 245,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 602,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 305,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 603,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 305,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 604,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 385,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 605,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 305,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 606,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 245,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 607,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 455,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 608,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 225,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 609,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 285,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 610,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 285,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 611,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 365,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 612,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 285,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 613,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 225,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 614,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 365,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    }
+   ]
+  },
+  {
+   "numero": 7,
+   "quartos": [
+    {
+     "numero": 701,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 0,
+     "precoBase": 260,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 702,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 1,
+     "precoBase": 320,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 703,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 2,
+     "precoBase": 320,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 704,
+     "tipo": "superior",
+     "fachada": "S",
+     "posicaoNaFachada": 3,
+     "precoBase": 400,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 705,
+     "tipo": "casal",
+     "fachada": "S",
+     "posicaoNaFachada": 4,
+     "precoBase": 320,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 706,
+     "tipo": "solteiro",
+     "fachada": "S",
+     "posicaoNaFachada": 5,
+     "precoBase": 260,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 707,
+     "tipo": "familia",
+     "fachada": "S",
+     "posicaoNaFachada": 6,
+     "precoBase": 470,
+     "acessivel": false,
+     "vista": "mar",
+     "status": "disponivel"
+    },
+    {
+     "numero": 708,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 0,
+     "precoBase": 240,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 709,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 1,
+     "precoBase": 300,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 710,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 2,
+     "precoBase": 300,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "indisponivel"
+    },
+    {
+     "numero": 711,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 3,
+     "precoBase": 380,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 712,
+     "tipo": "casal",
+     "fachada": "N",
+     "posicaoNaFachada": 4,
+     "precoBase": 300,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 713,
+     "tipo": "solteiro",
+     "fachada": "N",
+     "posicaoNaFachada": 5,
+     "precoBase": 240,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    },
+    {
+     "numero": 714,
+     "tipo": "superior",
+     "fachada": "N",
+     "posicaoNaFachada": 6,
+     "precoBase": 380,
+     "acessivel": false,
+     "vista": "cidade",
+     "status": "disponivel"
+    }
+   ]
+  }
+ ]
+}
