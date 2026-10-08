@@ -30,6 +30,7 @@ if (root) {
       tooltip,
       onSelecionar(q, tipo) {
         if (!ficha) return;
+        ficha.hidden = false;
         const disp = q.status === 'disponivel';
         ficha.innerHTML = `
           <p class="ficha__num">Quarto ${q.numero}</p>
