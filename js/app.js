@@ -2,6 +2,15 @@
 (function () {
   'use strict';
 
+  // Frases da pagina. Os arquivos de script sao os mesmos nas duas linguas,
+  // entao o texto vem do bloco JSON que a pagina traz. Sem o bloco, vale o
+  // portugues escrito aqui como reserva.
+  var FRASES = (function () {
+    try { return JSON.parse(document.getElementById('i18n').textContent); }
+    catch (e) { return {}; }
+  })();
+  var fr = function (chave, reserva) { return FRASES[chave] || reserva; };
+
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* Galeria: setas, pontos, teclado e arraste horizontal.
@@ -31,7 +40,8 @@
       b.className = 'gal__dot';
       var label = document.createElement('span');
       label.className = 'visually-hidden';
-      label.textContent = 'Foto ' + (i + 1) + ' de ' + slides.length;
+      label.textContent = fr('foto', 'Foto {i} de {n}')
+        .replace('{i}', i + 1).replace('{n}', slides.length);
       b.appendChild(label);
       b.addEventListener('click', function () { go(i); });
       li.appendChild(b);

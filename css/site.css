@@ -523,3 +523,21 @@ body > main > .section:only-child { margin-block: auto; }
   color: var(--color-bg);
   padding: var(--space-2) var(--space-3);
 }
+
+/* Seletor de idioma, na barra do cabecalho. Duas letras so: o visitante que
+   chega numa lingua que nao le precisa achar a troca sem antes decifrar o
+   botao do menu, entao ela nao entra no menu sanfonado. */
+.idiomas {
+  margin: 0 0 0 auto;
+  display: flex; align-items: center; gap: 2px;
+  font-size: var(--step--1); letter-spacing: 0.06em;
+}
+.idiomas a, .idiomas__atual {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 2.75rem; min-height: 2.75rem;   /* alvo da WCAG 2.5.8 */
+  text-decoration: none; border-radius: var(--radius-pill);
+  color: var(--tinta);
+}
+.idiomas__atual { font-weight: 600; text-decoration: underline; text-underline-offset: 0.3em; }
+.idiomas a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
+@media (min-width: 48em) { .idiomas { margin-left: 0; order: 3; } }

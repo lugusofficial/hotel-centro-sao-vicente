@@ -21,6 +21,13 @@ if (raiz) {
   const aviso = raiz.querySelector('[data-tour-aviso]');
   const estado = raiz.querySelector('[data-tour-status]');
   const arquivo = canvas && canvas.dataset.panorama;
+  // Frases da pagina: o arquivo e o mesmo nas duas linguas.
+  const FRASES = (() => {
+    try { return JSON.parse(document.getElementById('i18n').textContent); }
+    catch (e) { return {}; }
+  })();
+  const fr = (chave, reserva) => FRASES[chave] || reserva;
+
   const reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const anunciar = (t) => { if (estado) estado.textContent = t; };
@@ -46,7 +53,7 @@ if (raiz) {
     try {
       renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     } catch (e) {
-      falhar('Tour indisponível neste navegador');
+      falhar(fr('tourSemWebgl', 'Tour indisponível neste navegador'));
       return;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
@@ -66,18 +73,20 @@ if (raiz) {
     const invalidar = () => { precisa = true; };
 
     const tex = new THREE.TextureLoader().load(
-      `assets/${arquivo}`,
+      // Resolvido a partir do modulo: a pagina em ingles mora em en/ e um
+      // caminho relativo a ela pediria en/assets, que nao existe.
+      new URL(`../assets/${arquivo}`, import.meta.url).href,
       () => {
         mat.map = tex;
         mat.color.setHex(0xffffff);
         mat.needsUpdate = true;   // sair de sem mapa para com mapa recompila o shader
         raiz.setAttribute('data-pronto', 'true');
         if (botao) botao.hidden = true;
-        anunciar('Tour aberto. Arraste para olhar em volta, ou use os botões abaixo.');
+        anunciar(fr('tourAberto', 'Tour aberto. Arraste para olhar em volta, ou use os botões abaixo.'));
         invalidar();
       },
       undefined,
-      () => falhar('Não foi possível carregar o tour'));
+      () => falhar(fr('tourFalhou', fr('tourFalhou', 'Não foi possível carregar o tour'))));
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
@@ -148,9 +157,11 @@ if (raiz) {
     // ------------------------------------------------- botoes e teclado
     const PASSO = 24;
     const nomes = {
-      esq: 'Olhou para a esquerda', dir: 'Olhou para a direita',
-      cima: 'Olhou para cima', baixo: 'Olhou para baixo',
-      inicio: 'Voltou ao ponto de partida',
+      esq: fr('olhouEsq', 'Olhou para a esquerda'),
+      dir: fr('olhouDir', 'Olhou para a direita'),
+      cima: fr('olhouCima', 'Olhou para cima'),
+      baixo: fr('olhouBaixo', 'Olhou para baixo'),
+      inicio: fr('olhouInicio', 'Voltou ao ponto de partida'),
     };
     function olhar(dir) {
       if (dir === 'esq') lon -= PASSO;
@@ -201,17 +212,17 @@ if (raiz) {
 
   if (botao && arquivo) {
     if (!temWebgl()) {
-      falhar('Tour indisponível neste navegador');
+      falhar(fr('tourSemWebgl', 'Tour indisponível neste navegador'));
     } else {
       botao.addEventListener('click', () => {
         botao.disabled = true;
-        botao.textContent = 'Carregando o tour';
+        botao.textContent = fr('tourCarregando', 'Carregando o tour');
         import('three')
           .then((THREE) => montar(THREE))
-          .catch(() => falhar('Não foi possível carregar o tour'));
+          .catch(() => falhar(fr('tourFalhou', fr('tourFalhou', 'Não foi possível carregar o tour'))));
       }, { once: true });
       if (reduzido) {
-        anunciar('Movimento reduzido ativo. O tour abre parado, no ponto de partida.');
+        anunciar(fr('tourParado', 'Movimento reduzido ativo. O tour abre parado, no ponto de partida.'));
       }
     }
   }

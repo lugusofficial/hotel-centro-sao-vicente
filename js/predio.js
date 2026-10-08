@@ -45,8 +45,19 @@ const suave = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 // menor caminho angular, para o giro nao dar a volta longa
 const curto = (d) => THREE.MathUtils.euclideanModulo(d + Math.PI, Math.PI * 2) - Math.PI;
 
+// Frases da pagina: o arquivo e o mesmo nas duas linguas.
+const FRASES = (() => {
+  try { return JSON.parse(document.getElementById('i18n').textContent); }
+  catch (e) { return {}; }
+})();
+const fr = (chave, reserva) => FRASES[chave] || reserva;
+
 export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, onModo }) {
-  const hotel = await fetch('data/hotel.json').then((r) => r.json());
+  // Caminho resolvido a partir do modulo, nao da pagina. Os modulos moram em
+  // js/ e as paginas em ingles moram em en/: com caminho relativo a pagina,
+  // en/index.html pediria en/data e en/assets, que nao existem.
+  const hotel = await fetch(new URL('../data/hotel.json', import.meta.url))
+    .then((r) => r.json());
   const D = hotel.dimensoes;
   const porFachada = hotel.quartosPorFachada;
   const largura = porFachada * D.larguraPorQuarto;
@@ -93,7 +104,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // um clone: clone feito antes do download fica sem imagem para sempre.
   const carregador = new THREE.TextureLoader();
   function textura(arquivo, metros, u, v) {
-    const t = carregador.load(`assets/${arquivo}`, () => { invalidar(); });
+    const t = carregador.load(new URL(`../assets/${arquivo}`, import.meta.url).href,
+      () => { invalidar(); });
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.repeat.set(Math.max(1, Math.round(u / metros)), Math.max(1, Math.round(v / metros)));
     t.colorSpace = THREE.SRGBColorSpace;
@@ -664,8 +676,12 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
       tooltip.hidden = false;
       tooltip.style.left = `${ev.clientX - r.left}px`;
       tooltip.style.top = `${ev.clientY - r.top}px`;
-      tooltip.innerHTML = `<strong>Quarto ${q.numero}</strong><span>${t.nome} · R$ ${q.precoBase}</span>` +
-        `<span>${q.status === 'disponivel' ? 'Disponível' : 'Ocupado'} · vista ${q.vista}</span>`;
+      const nome = (FRASES.tipos && FRASES.tipos[q.tipo]) || t.nome;
+      const olha = fr(q.vista === 'mar' ? 'vistaMar' : 'vistaCidade', q.vista);
+      tooltip.innerHTML = `<strong>${fr('quarto', 'Quarto')} ${q.numero}</strong>`
+        + `<span>${nome} · R$ ${q.precoBase}</span>`
+        + `<span>${q.status === 'disponivel' ? fr('disponivel', 'Disponível') : fr('ocupado', 'Ocupado')}`
+        + ` · ${fr('vista', 'Vista').toLowerCase()} ${olha}</span>`;
     } else {
       tooltip.hidden = true;
     }

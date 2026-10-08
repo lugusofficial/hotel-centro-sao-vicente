@@ -2,6 +2,16 @@
 // existem no HTML e funcionam sem WebGL, sem este modulo e por teclado.
 import { montarPredio } from './predio.js';
 
+// Frases da pagina: o arquivo e o mesmo nas duas linguas, entao o texto vem do
+// bloco JSON que a pagina traz. Sem o bloco, vale o portugues de reserva.
+const FRASES = (() => {
+  try { return JSON.parse(document.getElementById('i18n').textContent); }
+  catch (e) { return {}; }
+})();
+const fr = (chave, reserva) => FRASES[chave] || reserva;
+// O nome do tipo vem do hotel.json, que e unico para as duas linguas.
+const nomeTipo = (chave, tipo) => (FRASES.tipos && FRASES.tipos[chave]) || tipo.nome;
+
 const root = document.querySelector('[data-predio]');
 if (root) {
   const canvas = root.querySelector('[data-predio-canvas]');
@@ -21,9 +31,9 @@ if (root) {
       const aqui = a.numero === atual;
       return `<button type="button" data-andar="${a.numero}"`
         + `${aqui ? ' aria-current="true"' : ''}>`
-        + `<span class="visually-hidden">Andar </span>${a.numero}</button>`;
+        + `<span class="visually-hidden">${fr('andar', 'Andar')} </span>${a.numero}</button>`;
     }).join('');
-    return `<div class="ficha__andares"><span class="ficha__rotulo" id="ficha-andares">Trocar de andar</span>`
+    return `<div class="ficha__andares"><span class="ficha__rotulo" id="ficha-andares">${fr('trocarAndar', 'Trocar de andar')}</span>`
       + `<div role="group" aria-labelledby="ficha-andares">${botoes}</div></div>`;
   };
 
@@ -80,19 +90,19 @@ if (root) {
         ficha.hidden = false;
         const disp = q.status === 'disponivel';
         ficha.innerHTML = `
-          <p class="ficha__num">Quarto ${q.numero}</p>
-          <p class="ficha__tipo">${tipo.nome}</p>
+          <p class="ficha__num">${fr('quarto', 'Quarto')} ${q.numero}</p>
+          <p class="ficha__tipo">${nomeTipo(q.tipo, tipo)}</p>
           <dl class="ficha__dados">
-            <div><dt>Diária</dt><dd>R$ ${q.precoBase}</dd></div>
-            <div><dt>Andar</dt><dd>${String(q.numero).slice(0, -2)}</dd></div>
-            <div><dt>Vista</dt><dd>${q.vista}</dd></div>
-            <div><dt>Hóspedes</dt><dd>${tipo.hosp}</dd></div>
+            <div><dt>${fr('diaria', 'Diária')}</dt><dd>R$ ${q.precoBase}</dd></div>
+            <div><dt>${fr('andar', 'Andar')}</dt><dd>${String(q.numero).slice(0, -2)}</dd></div>
+            <div><dt>${fr('vista', 'Vista')}</dt><dd>${fr(q.vista === 'mar' ? 'vistaMar' : 'vistaCidade', q.vista)}</dd></div>
+            <div><dt>${fr('hospedes', 'Hóspedes')}</dt><dd>${tipo.hosp}</dd></div>
           </dl>
-          <p class="ficha__estado" data-disp="${disp}">${disp ? 'Disponível' : 'Indisponível nas datas'}</p>
+          <p class="ficha__estado" data-disp="${disp}">${disp ? fr('disponivel', 'Disponível') : fr('indisponivel', 'Indisponível nas datas')}</p>
           ${linhaAndares(q.numero)}
-          <p><a class="btn btn--primary" href="${tipo.pagina}">Ver o ${tipo.nome}</a></p>
+          <p><a class="btn btn--primary" href="${tipo.pagina}">${fr('ver', 'Ver o {tipo}').replace('{tipo}', nomeTipo(q.tipo, tipo))}</a></p>
           <p class="ficha__acoes">
-            <button type="button" class="btn btn--link" data-acao="geral">Ver o prédio inteiro</button>
+            <button type="button" class="btn btn--link" data-acao="geral">${fr('predioInteiro', 'Ver o prédio inteiro')}</button>
           </p>`;
       },
       // Estado da cena no atributo: o CSS usa para tirar o texto do herói da
@@ -106,14 +116,15 @@ if (root) {
             ficha.hidden = true;
             ficha.style.left = ficha.style.top = ficha.style.opacity = '';
           }
-          anunciar('Visão externa do prédio. Nenhum quarto selecionado.');
+          anunciar(fr('semSelecao', 'Visão externa do prédio. Nenhum quarto selecionado.'));
           return;
         }
         if (!q) return;
         if (modo === 'vista') {
           anunciar(`Vista da janela do quarto ${q.numero}. Use o botão Voltar ao quarto ou a tecla Escape para sair.`);
         } else {
-          anunciar(`Quarto ${q.numero} em foco, andar ${String(q.numero).slice(0, -2)}. Os outros andares ficaram transparentes.`);
+          anunciar(fr('emFoco', 'Quarto {numero} em foco, andar {andar}. Os outros andares ficaram transparentes.')
+          .replace('{numero}', q.numero).replace('{andar}', String(q.numero).slice(0, -2)));
         }
       },
       // A ficha acompanha a janela escolhida, saindo de dentro do prédio.
