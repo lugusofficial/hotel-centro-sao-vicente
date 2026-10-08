@@ -348,7 +348,7 @@
 .tour__palco:fullscreen,
 .tour__palco.is-ampliado {
   position: fixed; inset: 0; z-index: 60;
-  background: #15120f;
+  background: var(--color-text);
   padding: var(--space-4);
   grid-template-rows: 1fr auto auto;
   gap: var(--space-3);
