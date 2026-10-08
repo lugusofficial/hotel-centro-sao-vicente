@@ -140,6 +140,25 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     janela: clonarFantasma(M.janela, 0x6f6e78),
   };
 
+  // Volume em forma de estadio: trecho reto mais a meia cana da ponta. A folga
+  // f afasta o contorno INTEIRO do corpo, inclusive na curva, e e por isso que
+  // o eixo da cana nao se mexe com a folga: so o raio cresce. Somar a folga ao
+  // raio e ao eixo ao mesmo tempo, que foi o que eu fiz antes, faz a peca sair
+  // o dobro bem na ponta e vira uma aleta saindo do predio.
+  function estadio(f, alturaY, material) {
+    const g = new THREE.Group();
+    const caixa = new THREE.Mesh(
+      new THREE.BoxGeometry(largura + f, alturaY, prof + 2 * f), material);
+    caixa.position.x = -f / 2;          // termina no eixo da cana, do lado da ponta
+    const cana = new THREE.Mesh(
+      new THREE.CylinderGeometry(prof / 2 + f, prof / 2 + f, alturaY, 28, 1, true, 0, Math.PI),
+      material);
+    cana.position.x = largura / 2;
+    g.add(caixa, cana);
+    g.pecas = [caixa, cana];
+    return g;
+  }
+
   const predio = new THREE.Group();
   predio.rotation.y = THREE.MathUtils.degToRad(hotel.rotacaoGraus);
   scene.add(predio);
@@ -161,35 +180,20 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // primeiro andar. E a vitrine vira uma fileira de vaos na mesma cadencia das
   // janelas de cima, que e o que amarra o terreo ao resto do predio.
   const RECUO = 0.35;
-  const baseL = largura - 2 * RECUO;
-  const baseR = prof / 2 - RECUO;          // meia profundidade, e raio da curva
-  const baseX = baseL / 2;                 // eixo da curva, na ponta da caixa
+  const baseR = prof / 2 - RECUO;          // raio da curva do terreo
 
-  M.base.map = textura('tex-pedra-base.jpg', 2.2, baseL, D.terreo);
+  M.base.map = textura('tex-pedra-base.jpg', 2.2, largura - RECUO, D.terreo);
   M.base.needsUpdate = true;  // sair de sem mapa para com mapa recompila o shader
-  const terreo = new THREE.Mesh(
-    new THREE.BoxGeometry(baseL, D.terreo, baseR * 2), M.base);
+  const terreo = estadio(-RECUO, D.terreo, M.base);
   terreo.position.y = D.terreo / 2;
-  terreo.castShadow = terreo.receiveShadow = true;
+  terreo.pecas.forEach((m) => { m.castShadow = m.receiveShadow = true; });
   predio.add(terreo);
 
-  const terreoBaia = new THREE.Mesh(
-    new THREE.CylinderGeometry(baseR, baseR, D.terreo, 28, 1, true, 0, Math.PI), M.base);
-  terreoBaia.position.set(baseX, D.terreo / 2, 0);
-  terreoBaia.castShadow = terreoBaia.receiveShadow = true;
-  predio.add(terreoBaia);
-
-  // Aba entre o terreo e a torre, com a ponta dobrada junto
-  const aba = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.3, 0.35, prof + 0.3), M.faixa);
+  // Aba entre o terreo e a torre
+  const aba = estadio(0.15, 0.35, M.faixa);
   aba.position.y = D.terreo - 0.175;
-  aba.castShadow = aba.receiveShadow = true;
+  aba.pecas.forEach((m) => { m.castShadow = m.receiveShadow = true; });
   predio.add(aba);
-  const abaBaia = new THREE.Mesh(
-    new THREE.CylinderGeometry((prof + 0.3) / 2, (prof + 0.3) / 2, 0.35, 28, 1, true, 0, Math.PI),
-    M.faixa);
-  abaBaia.position.set((largura + 0.3) / 2, D.terreo - 0.175, 0);
-  abaBaia.castShadow = abaBaia.receiveShadow = true;
-  predio.add(abaBaia);
 
   // Loja e recepcao: um vao por eixo de janela, nas duas fachadas. O vao do
   // meio da fachada da frente e a entrada, mais alta e mais acesa.
@@ -301,21 +305,10 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     baia.castShadow = baia.receiveShadow = true;
     grupo.add(baia);
 
-    const faixa = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.5, 0.34, prof + 0.5), M.faixa);
+    const faixa = estadio(0.25, 0.34, M.faixa);
     faixa.position.y = D.peDireito - 0.17;
-    faixa.castShadow = faixa.receiveShadow = true;
+    faixa.pecas.forEach((m) => { m.castShadow = m.receiveShadow = true; });
     grupo.add(faixa);
-
-    // A cinta tambem precisa dobrar a ponta, senao a curva fica sem remate.
-    const faixaBaia = new THREE.Mesh(
-      new THREE.CylinderGeometry(BAIA_R + 0.25, BAIA_R + 0.25, 0.34, 28, 1, true, 0, Math.PI),
-      M.faixa);
-    // O eixo da curva vai na ponta DESTA caixa, nao na do corpo: a cinta e
-    // meio metro mais larga, e usar o mesmo eixo deixava a quina dela
-    // sobrando um palmo para fora da curva, que era o degrau no alto.
-    faixaBaia.position.set((largura + 0.5) / 2, D.peDireito - 0.17, 0);
-    faixaBaia.castShadow = faixaBaia.receiveShadow = true;
-    grupo.add(faixaBaia);
 
     const n = andar.quartos.length;
     const janelas = new THREE.InstancedMesh(geoJanela, M.janela, n);
@@ -371,22 +364,15 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     soleiras.computeBoundingSphere();
     grupo.add(molduras, soleiras, janelas);
 
-    andares.push({ grupo, corpo, baia, faixa, faixaBaia, molduras, soleiras, janelas,
+    andares.push({ grupo, corpo, baia, faixa, molduras, soleiras, janelas,
                    meta, locais, normais, baseY, alvoY: baseY, fantasma: false });
   });
 
-  const topo = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.7, 0.8, prof + 0.7), M.faixa);
   const topoBase = alturaTotal + 0.4;
+  const topo = estadio(0.35, 0.8, M.faixa);
   topo.position.y = topoBase;
-  topo.castShadow = true;
+  topo.pecas.forEach((m) => { m.castShadow = true; });
   predio.add(topo);
-
-  const topoBaia = new THREE.Mesh(
-    new THREE.CylinderGeometry(BAIA_R + 0.35, BAIA_R + 0.35, 0.8, 28, 1, true, 0, Math.PI),
-    M.faixa);
-  topoBaia.position.set((largura + 0.7) / 2, topoBase, 0);
-  topoBaia.castShadow = true;
-  predio.add(topoBaia);
 
   sol.target.position.set(0, alturaTotal * 0.45, 0);
   sol.target.updateMatrixWorld();
@@ -551,13 +537,13 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     a.fantasma = ligar;
     a.corpo.material = ligar ? matCorpoFantasma : matCorpo;
     a.baia.material = ligar ? F.concreto : tijoloBaia;
-    a.faixa.material = ligar ? F.faixa : M.faixa;
-    a.faixaBaia.material = ligar ? F.faixa : M.faixa;
+    a.faixa.pecas.forEach((m) => { m.material = ligar ? F.faixa : M.faixa; });
     a.molduras.material = ligar ? F.esquadria : M.esquadria;
     a.soleiras.material = ligar ? F.faixa : M.soleira;
     a.janelas.material = ligar ? F.janela : M.janela;
-    a.corpo.castShadow = a.faixa.castShadow = a.molduras.castShadow = !ligar;
-    a.soleiras.castShadow = a.baia.castShadow = a.faixaBaia.castShadow = !ligar;
+    a.corpo.castShadow = a.molduras.castShadow = !ligar;
+    a.soleiras.castShadow = a.baia.castShadow = !ligar;
+    a.faixa.pecas.forEach((m) => { m.castShadow = !ligar; });
   }
 
   // Afastamento de SEP pes-direitos por andar de distancia do escolhido. O

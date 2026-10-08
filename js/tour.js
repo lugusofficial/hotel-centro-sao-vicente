@@ -165,67 +165,6 @@ if (raiz) {
       b.addEventListener('click', () => olhar(b.dataset.olhar));
     });
 
-    // Ampliar. Em 290 px de altura o quarto nao cabe no olho; em tela cheia
-    // cabe. A API e o caminho normal e a classe e a reserva para quando o
-    // navegador recusa, caso do Safari no iPhone, onde requestFullscreen nao
-    // existe para elemento comum.
-    const palco = raiz.querySelector('.tour__palco');
-    const botaoTela = raiz.querySelector('[data-tela]');
-    function ampliado() {
-      return document.fullscreenElement === palco || palco.classList.contains('is-ampliado');
-    }
-    function rotular() {
-      if (!botaoTela) return;
-      botaoTela.textContent = ampliado() ? 'Reduzir' : 'Ampliar';
-      anunciar(ampliado() ? 'Tour em tela cheia.' : 'Tour no tamanho normal.');
-      invalidar();
-    }
-    const reserva = () => {
-      if (palco.classList.contains('is-ampliado')) return;
-      palco.classList.add('is-ampliado');
-      rotular();
-    };
-
-    function alternarTela() {
-      if (ampliado()) {
-        // Sai dos dois estados: se a tela cheia tiver engatado depois da
-        // reserva ter entrado, os dois podem estar ligados ao mesmo tempo.
-        if (document.fullscreenElement === palco) document.exitFullscreen();
-        palco.classList.remove('is-ampliado');
-        rotular();
-        return;
-      }
-      if (!document.fullscreenEnabled || !palco.requestFullscreen) {
-        reserva();
-        return;
-      }
-      palco.requestFullscreen().catch(reserva);
-      // Rede de seguranca. A promessa pode nao resolver nem rejeitar, e ai o
-      // botao ficaria sem efeito para sempre. Passados 400 ms sem tela cheia,
-      // vale a reserva: o importante e o clique sempre fazer alguma coisa.
-      setTimeout(() => {
-        if (document.fullscreenElement !== palco) reserva();
-      }, 400);
-    }
-    if (botaoTela) botaoTela.addEventListener('click', alternarTela);
-    document.addEventListener('fullscreenchange', rotular);
-    // Escape sai da tela cheia sozinho; da reserva, nao.
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && palco.classList.contains('is-ampliado')) {
-        palco.classList.remove('is-ampliado');
-        rotular();
-      }
-    });
-    // As setas valem quando o foco esta num dos botoes. No canvas nao daria: ele
-    // e aria-hidden, e por isso fica fora da ordem de foco de proposito.
-    const controles = raiz.querySelector('.tour__controles');
-    if (controles) controles.addEventListener('keydown', (e) => {
-      const mapa = { ArrowLeft: 'esq', ArrowRight: 'dir', ArrowUp: 'cima', ArrowDown: 'baixo', Home: 'inicio' };
-      if (!mapa[e.key]) return;
-      e.preventDefault();
-      olhar(mapa[e.key]);
-    });
-
     // --------------------------------------------------------- desenho
     let visivel = true;
     if ('IntersectionObserver' in window) {
