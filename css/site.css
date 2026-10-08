@@ -289,15 +289,19 @@
 .tour { display: grid; gap: var(--space-6); align-items: start; }
 .tour__palco { position: relative; display: grid; gap: var(--space-4); }
 .tour__canvas {
-  width: 100%; height: clamp(18rem, 48vw, 30rem); display: block;
+  width: 100%; height: clamp(20rem, 56vw, 34rem); display: block;
   border-radius: var(--radius-lg); background: var(--color-surface);
   touch-action: pan-y; user-select: none;
 }
 .tour__capa {
   position: absolute; inset: 0; display: grid; place-items: center;
   border-radius: var(--radius-lg); overflow: hidden;
-  height: clamp(18rem, 48vw, 30rem);
+  height: clamp(20rem, 56vw, 34rem);
 }
+/* Antes de o tour abrir, os controles nao controlam nada: ficam fora da
+   pagina e fora da ordem de foco, em vez de enfileirados sem funcao. */
+.tour:not([data-pronto="true"]) .tour__controles,
+.tour:not([data-pronto="true"]) .tour__status { display: none; }
 .tour__capa img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* O veu escurece a foto para o botao se destacar, e nada mais: sem isto ele
    fica por cima do botao e come o clique, que e o que acontecia. */
@@ -331,6 +335,29 @@
   content: ""; position: absolute; left: 0; top: 0.65em;
   width: 0.5rem; height: 1px; background: var(--color-accent);
 }
+/* O tour ampliado se apoia em position fixed, e qualquer ancestral com
+   transform vira o bloco de contencao dele. O reveal poe translateY no
+   container da secao, entao a tela cheia de reserva ficaria presa dentro da
+   secao em vez de cobrir a janela. Esta secao entra no reveal so pela
+   opacidade. */
+.js-reveal .section--tour > .container { transform: none; }
+
+/* Ampliado. A API de tela cheia e o caminho normal; a classe e a reserva
+   para quando o navegador recusa, que acontece em iPhone no Safari. Nos dois
+   casos o palco vira a tela inteira e os controles descem para o rodape. */
+.tour__palco:fullscreen,
+.tour__palco.is-ampliado {
+  position: fixed; inset: 0; z-index: 60;
+  background: #15120f;
+  padding: var(--space-4);
+  grid-template-rows: 1fr auto auto;
+  gap: var(--space-3);
+}
+.tour__palco:fullscreen .tour__canvas,
+.tour__palco.is-ampliado .tour__canvas { height: 100%; border-radius: var(--radius-md); }
+.tour__palco:fullscreen .tour__status,
+.tour__palco.is-ampliado .tour__status { color: var(--color-rule); }
+
 @media (min-width: 64em) { .tour { grid-template-columns: 7fr 5fr; gap: var(--space-8); } }
 
 /* Comodidades */
