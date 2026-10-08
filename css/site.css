@@ -69,26 +69,78 @@
   .picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .picker__meta { margin-left: 0; }
 }
+/* Estados da cena. O atributo data-modo e escrito por js/predio-init.js:
+   geral (predio inteiro), quarto (andares separados) e vista (dentro do quarto). */
+.cena__texto, .cena__veu { transition: opacity 400ms ease; }
+.cena[data-modo="quarto"] .cena__texto,
+.cena[data-modo="vista"] .cena__texto { opacity: 0; }
+.cena[data-modo="vista"] .cena__veu { opacity: 0.3; }
+
+/* Dentro do quarto o recorte da janela e o proprio contorno da cena */
+.cena[data-modo="vista"]::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  box-shadow: inset 0 0 0 0.7rem rgba(8, 12, 26, 0.94), inset 0 0 6rem 2rem rgba(8, 12, 26, 0.5);
+}
+
+/* Da vista da janela nao da para projetar o quadro: a ficha vai para o canto */
+.cena[data-modo="vista"] .ficha { left: var(--gutter); top: auto; bottom: var(--space-4); transform: none; }
+.cena[data-modo="vista"] .ficha::after { display: none; }
+
+/* Acoes da ficha: entrar na vista, voltar ao quarto, voltar ao predio */
+.ficha__acoes { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.ficha__acoes .btn { font-size: var(--step--1); }
+.cena:not([data-modo="quarto"]) [data-so="quarto"],
+.cena:not([data-modo="vista"]) [data-so="vista"] { display: none; }
+
 @media (max-width: 55.99em) {
   .cena { height: clamp(24rem, 62vh, 34rem); }
   .cena .ficha { position: static; transform: none; width: auto; margin: var(--space-4) var(--gutter) 0; }
   .cena .ficha::after { display: none; }
   .cena__texto { align-content: start; padding-top: var(--space-6); }
+  .cena[data-modo="vista"] .ficha { left: auto; bottom: auto; }
 }
 
-/* Listagem de quartos.
-   As linhas sao fixas e o resumo recebe 1fr, entao fatos e preco encostam na
-   base e todos os cartoes alinham, mesmo com resumos de alturas diferentes. */
-.rooms { display: grid; gap: var(--space-7); align-items: stretch; }
+/* Listagem de quartos: cartao delimitado de verdade, com superficie propria,
+   contorno e foto sangrando no topo. As linhas do grid sao fixas e o resumo
+   recebe 1fr, entao preco e fatos encostam na base e os cartoes alinham. */
+.rooms { display: grid; gap: var(--space-5); align-items: stretch; }
 .rooms__item {
   max-width: none;
   display: grid;
-  grid-template-rows: auto 1fr auto auto;
-  gap: var(--space-3);
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  padding-bottom: var(--space-4);
+  transition: border-color 220ms ease, transform 220ms ease;
 }
-.rooms__resumo { max-width: 34ch; }
+.rooms__item:hover { border-color: var(--color-accent); transform: translateY(-2px); }
+.rooms__link { text-decoration: none; display: grid; gap: 0; }
+.rooms__link img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-bottom: var(--space-4);
+  transition: opacity 220ms ease;
+}
+.rooms__item:hover .rooms__link img { opacity: 0.92; }
+.rooms__link h2, .rooms__link h3 {
+  font-size: var(--step-1);
+  padding-inline: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+.rooms__item:hover .rooms__link h2 { color: var(--color-accent); }
+.rooms__resumo {
+  padding-inline: var(--space-4);
+  margin-bottom: var(--space-4);
+  max-width: 34ch;
+}
 .rooms__fatos {
-  margin: 0;
+  margin: 0 0 var(--space-3);
+  padding-inline: var(--space-4);
   font-size: var(--step--1);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -96,13 +148,12 @@
 }
 .rooms__fatos span { color: var(--color-rule); }
 .rooms__preco {
-  margin: 0;
+  margin: 0 var(--space-4);
+  padding-top: var(--space-3);
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: 0.1em 0.4em;
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-rule);
 }
 .rooms__preco span { font-size: var(--step--1); color: var(--color-muted); }
 .rooms__preco strong {
@@ -112,14 +163,8 @@
   color: var(--color-accent);
   line-height: 1;
 }
-.rooms__link { text-decoration: none; display: grid; gap: var(--space-3); }
-.rooms__link img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-md); transition: opacity 250ms ease; }
-.rooms__link:hover img { opacity: 0.88; }
-.rooms__link h2, .rooms__link h3 { font-size: var(--step-1); }
-.rooms__link:hover h2, .rooms__link:hover h3 { color: var(--color-accent); }
-.rooms__item p { max-width: 42ch; }
 @media (min-width: 40em) { .rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 72em) { .rooms { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-6); } }
+@media (min-width: 72em) { .rooms { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-5); } }
 
 /* Fichas tecnicas */
 .specs { display: grid; gap: var(--space-3); }
@@ -194,7 +239,7 @@
 
 /* Outros quartos */
 .others { display: grid; gap: var(--space-3); }
-.others li { max-width: none; padding-block: var(--space-3); border-top: 1px solid var(--color-rule); }
+.others li { max-width: none; padding-block: var(--space-2); }
 .others a { text-decoration: none; font-family: var(--font-display); font-size: var(--step-1); }
 .others a:hover { color: var(--color-accent); text-decoration: underline; }
 
@@ -255,10 +300,7 @@ a.facts__value:hover { color: var(--color-accent); text-decoration: underline; }
 .site-footer a:hover { text-decoration: underline; }
 
 /* Superficie alternada entre secoes, para o corpo deixar de ser um bege so */
-main > section:nth-of-type(even) {
-  background: var(--color-surface);
-  border-block: 1px solid var(--color-rule);
-}
+main > section:nth-of-type(even) { background: var(--color-surface); }
 
 /* Filete dourado acima do titulo de cada secao */
 .section > .container > h1::before,
@@ -313,3 +355,10 @@ main { --section-gap: clamp(3rem, 5vw, 4.25rem); }
   z-index: 5;
 }
 .hero__aviso { font-size: var(--step--1); color: var(--color-muted); max-width: 46ch; }
+
+/* Rodape grudado no fim da tela.
+   Em paginas curtas, como contato, o conteudo acabava antes do fim da janela e
+   o rodape parava no meio, com o fundo do corpo aparecendo embaixo dele. */
+body { min-height: 100svh; display: flex; flex-direction: column; }
+body > main { flex: 1 0 auto; }
+.site-footer { margin-top: auto; }

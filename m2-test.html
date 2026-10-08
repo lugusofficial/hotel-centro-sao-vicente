@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Work+Sans:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/site.css?v=1948043a">
+<link rel="stylesheet" href="css/site.css?v=3a73c659">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Hotel", "name": "Sua Marca", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/", "telephone": "+0000000000", "email": "reservas@example.com", "address": {"@type": "PostalAddress", "streetAddress": "Rua Exemplo, 123", "addressLocality": "São Vicente", "addressRegion": "SP", "addressCountry": "BR"}, "numberOfRooms": 98, "checkinTime": "14:00", "checkoutTime": "12:00", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Ar condicionado"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi em todo o hotel"}, {"@type": "LocationFeatureSpecification", "name": "TV por assinatura"}, {"@type": "LocationFeatureSpecification", "name": "Frigobar"}, {"@type": "LocationFeatureSpecification", "name": "Cofre individual"}, {"@type": "LocationFeatureSpecification", "name": "Banheiro privativo"}, {"@type": "LocationFeatureSpecification", "name": "Café da manhã incluso"}, {"@type": "LocationFeatureSpecification", "name": "Enxoval trocado diariamente"}]}</script>
 <script src="js/main.js" defer></script>
 <script src="js/app.js?v=07e4f15b" defer></script>
@@ -135,5 +135,128 @@
     <p>© <span data-year>2026</span> Sua Marca. Todos os direitos reservados.</p>
   </div>
 </footer>
+
+<script>
+(function () {
+  // Quadros por timer: sob tempo virtual o rAF do Chrome headless congela.
+  window.requestAnimationFrame = function (cb) {
+    return setTimeout(function () { cb(performance.now()); }, 16);
+  };
+  window.cancelAnimationFrame = function (id) { clearTimeout(id); };
+
+  var erros = [];
+  var caixa = null;
+  function escrever(t) {
+    document.title = t;
+    if (!caixa) {
+      caixa = document.createElement('div');
+      caixa.style.cssText = 'position:fixed;left:0;top:0;z-index:99;background:#000;color:#0f0;font:11px monospace;padding:3px 6px;max-width:100%';
+      document.body.appendChild(caixa);
+    }
+    caixa.textContent = t;
+  }
+  function marcar(m) { erros.push(m); escrever('ERRO: ' + erros.join(' | ')); }
+  window.addEventListener('error', function (e) {
+    marcar((e.message || 'erro') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || 0));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    marcar('promise: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason));
+  });
+
+  var p = new URLSearchParams(location.search);
+  var passo = p.get('p') || '0';
+  var jx = Number(p.get('x') || 843);
+  var jy = Number(p.get('y') || 428);
+  var parar = Number(p.get('parar') || 0);
+  var mudo = p.get('mudo') === '1';   // sem caixa de depuracao, para a captura limpa
+
+  function canvas() { return document.querySelector('[data-predio-canvas]'); }
+  function ev(tipo, x, y) {
+    var C = window.PointerEvent ? PointerEvent : MouseEvent;
+    var init = { clientX: x, clientY: y, bubbles: true, cancelable: true, view: window };
+    if (window.PointerEvent) { init.pointerType = 'mouse'; init.pointerId = 1; init.isPrimary = true; }
+    canvas().dispatchEvent(new C(tipo, init));
+  }
+  function mover(x, y) { ev('pointermove', x, y); }
+  function clicar(x, y) { ev('pointermove', x, y); ev('click', x, y); }
+  function botao(acao) {
+    var b = document.querySelector('[data-predio-ficha] [data-acao="' + acao + '"]');
+    if (!b) { marcar('botao ' + acao + ' nao existe'); return; }
+    if (b.offsetParent === null) { marcar('botao ' + acao + ' oculto'); return; }
+    b.click();
+  }
+  function lista(i) {
+    var as = document.querySelectorAll('.picker [data-quarto]');
+    if (!as.length) { marcar('lista sem data-quarto'); return; }
+    as[i || 0].dispatchEvent(new MouseEvent('mouseenter', { bubbles: false, view: window }));
+  }
+  function escapar() {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  }
+
+  var roteiro = {
+    '0': {},
+    '1': { 40: function () { clicar(jx, jy); } },
+    '2': { 40: function () { clicar(jx, jy); }, 160: function () { botao('vista'); } },
+    '3': { 40: function () { clicar(jx, jy); }, 160: function () { botao('vista'); }, 280: function () { botao('voltar'); } },
+    '4': { 40: function () { clicar(jx, jy); }, 160: function () { botao('geral'); } },
+    '5': { 40: function () { lista(0); } },
+    '6': { 40: function () { clicar(jx, jy); }, 160: function () { escapar(); } },
+    '7': { 40: function () { clicar(jx, jy); }, 160: function () { clicar(jx, jy); } },
+    '8': { 40: function () { mover(jx, jy); } },
+    '9': { 40: function () { clicar(jx, jy); }, 160: function () { botao('vista'); }, 280: function () { escapar(); }, 400: function () { escapar(); } },
+    '10': { 40: function () { lista(0); }, 160: function () { lista(3); } },
+    '11': { 40: function () { clicar(jx, jy); }, 160: function () { mover(jx, jy - 60); } },
+    '13': { 40: function () { clicar(jx, jy); } }
+  };
+  var acoes = roteiro[passo] || {};
+
+  // Varredura: um ponto por quadro, para descobrir onde o raycast realmente acerta.
+  var pontos = [], achados = [], total = 0;
+  for (var yy = 200; yy <= 740; yy += 24) for (var xx = 620; xx <= 1220; xx += 24) pontos.push([xx, yy]);
+  var k = -1;
+
+  var n = 0;
+  var congelado = false;
+  function relatar() {
+    if (erros.length || mudo) return;
+    var cena = document.querySelector('[data-predio]');
+    var fi = document.querySelector('[data-predio-ficha]');
+    escrever('q=' + n + ' modo=' + (cena.getAttribute('data-modo') || '?') +
+      ' pronto=' + (cena.getAttribute('data-pronto') || 'nao') +
+      ' ficha=' + (fi.hidden ? 'oculta' : 'visivel') +
+      ' tip=' + (document.querySelector('[data-predio-tooltip]').hidden ? 'off' : 'on') +
+      ' t=' + Math.round(performance.now()) + ' rm=' + matchMedia('(prefers-reduced-motion: reduce)').matches + ' tot=' + total + ' hits=' + achados.length + '[' + achados.join(' ') + ']' +
+      ' rect=' + JSON.stringify(canvas().getBoundingClientRect().toJSON()).replace(/"|\{|\}/g, '') +
+      ' cv=' + canvas().width + 'x' + canvas().height +
+      ' | ' + (document.querySelector('[data-predio-status]').textContent || '').slice(0, 76));
+  }
+  function quadro() {
+    requestAnimationFrame(quadro);
+    if (congelado) return;
+    n++;
+    if (acoes[n]) { try { acoes[n](); } catch (e) { marcar('acao ' + n + ': ' + e.message); } }
+    if ((passo === '12' && n >= 40) || (passo === '13' && n >= 200)) {
+      if (k >= 0 && k < pontos.length && !document.querySelector('[data-predio-tooltip]').hidden) {
+        total++;
+        if (achados.indexOf('y' + pontos[k][1]) < 0) achados.push('y' + pontos[k][1]);
+      }
+      k++;
+      if (k < pontos.length) mover(pontos[k][0], pontos[k][1]);
+      else { congelado = true; }
+    }
+    if (n % 10 === 0 || (parar && n >= parar - 1)) relatar();
+    if (parar && n >= parar) {
+      congelado = true;
+      relatar();
+      // Congela a cena de verdade: so parar o laco do harness deixava o tick do
+      // modulo rodando ate o fim do orcamento de tempo virtual, e toda captura
+      // saia no estado final.
+      window.requestAnimationFrame = function () { return 0; };
+    }
+  }
+  requestAnimationFrame(quadro);
+})();
+</script>
 </body>
 </html>
