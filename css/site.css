@@ -599,6 +599,9 @@ body > main > .section:only-child { margin-block: auto; }
   border-radius: var(--radius-md);
   color: var(--color-bg);
   max-height: min(26rem, 52svh); overflow-y: auto;
+  /* Folga extra embaixo: a contagem e o ultimo elemento e, com a caixa
+     rolando, ela encostava na borda. */
+  padding-bottom: var(--space-5);
 }
 .busca__linha { margin: 0; display: grid; gap: var(--space-1); font-size: var(--step--1); }
 .busca__linha label { color: var(--color-rule); letter-spacing: 0.04em; }
@@ -611,7 +614,10 @@ body > main > .section:only-child { margin-block: auto; }
   background: var(--color-bg); border: 0; border-radius: var(--radius-sm);
 }
 .busca__linha output { font-family: var(--font-display); font-size: var(--step-0); }
-.busca__conta { margin: 0; font-size: var(--step--1); color: #f0c489; min-height: 1.4em; }
+.busca__conta {
+  margin: var(--space-1) 0 0; text-align: center;
+  font-size: var(--step--1); color: #f0c489; min-height: 1.4em;
+}
 @media (max-width: 55.99em) {
   .busca { right: var(--gutter); left: var(--gutter); align-items: flex-start; max-width: none; }
   .busca__campos { width: 100%; }

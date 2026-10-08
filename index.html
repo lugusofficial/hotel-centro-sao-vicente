@@ -23,12 +23,12 @@
 <link rel="alternate" hreflang="x-default" href="https://lugusofficial.github.io/hotel-centro-sao-vicente/index.html">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/site.css?v=236537a8">
+<link rel="stylesheet" href="css/site.css?v=5c9c3703">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Hotel", "name": "Sua Marca", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/", "telephone": "+0000000000", "email": "reservas@example.com", "address": {"@type": "PostalAddress", "streetAddress": "Rua Exemplo, 123", "addressLocality": "São Vicente", "addressRegion": "SP", "addressCountry": "BR"}, "numberOfRooms": 98, "checkinTime": "14:00", "checkoutTime": "12:00", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Ar condicionado"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi em todo o hotel"}, {"@type": "LocationFeatureSpecification", "name": "TV por assinatura"}, {"@type": "LocationFeatureSpecification", "name": "Frigobar"}, {"@type": "LocationFeatureSpecification", "name": "Cofre individual"}, {"@type": "LocationFeatureSpecification", "name": "Banheiro privativo"}, {"@type": "LocationFeatureSpecification", "name": "Café da manhã incluso"}, {"@type": "LocationFeatureSpecification", "name": "Enxoval trocado diariamente"}]}</script>
 <script type="application/json" id="i18n">{"quarto": "Quarto", "diaria": "Diária", "andar": "Andar", "vista": "Vista", "hospedes": "Hóspedes", "disponivel": "Disponível", "ocupado": "Ocupado", "indisponivel": "Indisponível nas datas", "trocarAndar": "Trocar de andar", "ver": "Ver o {tipo}", "predioInteiro": "Ver o prédio inteiro", "semSelecao": "Visão externa do prédio. Nenhum quarto selecionado.", "emFoco": "Quarto {numero} em foco, andar {andar}. Os outros andares ficaram transparentes.", "vistaMar": "mar", "vistaCidade": "cidade", "tipos": {"solteiro": "Quarto Solteiro", "casal": "Quarto Casal", "superior": "Quarto Superior", "familia": "Quarto Família"}, "tourSemWebgl": "Tour indisponível neste navegador", "tourFalhou": "Não foi possível carregar o tour", "tourCarregando": "Carregando o tour", "tourAberto": "Tour aberto. Arraste para olhar em volta, ou use os botões abaixo.", "tourParado": "Movimento reduzido ativo. O tour abre parado, no ponto de partida.", "olhouEsq": "Olhou para a esquerda", "olhouDir": "Olhou para a direita", "olhouCima": "Olhou para cima", "olhouBaixo": "Olhou para baixo", "olhouInicio": "Voltou ao ponto de partida", "foto": "Foto {i} de {n}", "sol": "Sol direto", "semSol": "Pouco sol direto", "faixaSol": "das {de}h às {ate}h", "contaTodos": "{n} quartos na fachada", "contaFiltro": "{n} quartos atendem"}</script>
 <script src="js/main.js" defer></script>
 <script src="js/app.js?v=cbfe4f37" defer></script>
-<script type="importmap">{"imports":{"three":"./js/vendor/three.module.js","three/addons/":"./js/vendor/","./js/predio.js":"./js/predio.js?v=009ac1bd"}}</script><script type="module" src="js/predio-init.js?v=b275b3d6"></script>
+<script type="importmap">{"imports":{"three":"./js/vendor/three.module.js","three/addons/":"./js/vendor/","./js/predio.js":"./js/predio.js?v=08d18e9a"}}</script><script type="module" src="js/predio-init.js?v=d6bd5be6"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Pular para o conteúdo</a>
@@ -72,16 +72,11 @@
        cena, mas o texto dele e de controle, nao de heroi, e nao deve
        contar no orcamento de palavras daquela secao. -->
   <section class="busca-secao" aria-labelledby="busca-title">
-    <h2 id="busca-title" class="visually-hidden">Hora e filtros da fachada</h2>
+    <h2 id="busca-title" class="visually-hidden">Filtros da fachada</h2>
     <div class="busca" data-busca hidden>
       <button class="busca__abrir" type="button" data-busca-abrir
-              aria-expanded="false" aria-controls="busca-campos">Hora e filtros</button>
+              aria-expanded="false" aria-controls="busca-campos">Filtros</button>
       <div class="busca__campos" id="busca-campos" hidden>
-        <p class="busca__linha">
-          <label for="f-hora">Hora do dia</label>
-          <input id="f-hora" type="range" min="5" max="20" step="0.5" value="18.5">
-          <output for="f-hora" data-f-hora>18h30</output>
-        </p>
         <p class="busca__linha">
           <label for="f-vista">Vista</label>
           <select id="f-vista"><option value="">Qualquer</option><option value="mar">Mar</option><option value="cidade">Cidade</option></select>

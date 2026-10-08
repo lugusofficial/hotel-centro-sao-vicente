@@ -18,7 +18,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { posicaoDoSol, direcaoDoSol, horasDeSol } from './sol.js';
+import { direcaoDoSol, horasDeSol } from './sol.js';
 
 // Fim de tarde: quarto livre com a luz acesa, ocupado as escuras.
 // A janela e MeshBasicMaterial: a cor da instancia E a luz dela. De dia isso
@@ -101,7 +101,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   renderer.shadowMap.needsUpdate = true;
 
   const scene = new THREE.Scene();
-  // o ceu de verdade e montado em aplicarHora, logo abaixo
+  // o ceu e montado em aplicarCeu, no fim da montagem
   scene.fog = new THREE.Fog(0x3a3a55, alturaTotal * 3.5, alturaTotal * 12);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -511,8 +511,15 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     invalidar();
   }
 
-  function aplicarHora(hora) {
-    const { elevacao, azimute } = posicaoDoSol(hotel.lat, hotel.lng, DATA, hora, FUSO);
+  // Entardecer fixo, nao a hora do relogio. A cena foi desenhada para o fim de
+  // tarde, com as janelas acesas dizendo quais quartos estao livres, e esse e o
+  // estado que o Lucas quer sempre. Derivar do relogio faria o visual mudar
+  // sozinho ao longo do ano: em dezembro as 18h30 ainda e dia em Sao Vicente.
+  // A posicao solar de verdade continua em uso, mas so para dizer na ficha de
+  // que horas a que horas cada fachada pega sol.
+  const ENTARDECER = { elevacao: -4.5, azimute: 252 };
+
+  function aplicarCeu({ elevacao, azimute }) {
     const d = direcaoDoSol(elevacao, azimute);
 
     sol.position.set(d.x * distSol, Math.max(d.y, -0.2) * distSol, d.z * distSol);
@@ -969,9 +976,9 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   avisarModo();
   tick();
-  aplicarHora(18.5);   // entardecer, que e o estado em que a cena foi desenhada
+  aplicarCeu(ENTARDECER);
 
-  return { hotel, selecionar, invalidar, verGeral, aplicarHora, aplicarFiltro,
+  return { hotel, selecionar, invalidar, verGeral, aplicarFiltro,
            solDaFachada: (f) => SOL_FACHADA[f], modo: () => modo };
 }
 

@@ -85,8 +85,6 @@ if (root) {
     const abrir = painel.querySelector('[data-busca-abrir]');
     const campos = painel.querySelector('#busca-campos');
     const conta = painel.querySelector('[data-busca-conta]');
-    const hora = painel.querySelector('#f-hora');
-    const saidaHora = painel.querySelector('[data-f-hora]');
     const vista = painel.querySelector('#f-vista');
     const andar = painel.querySelector('#f-andar');
     const preco = painel.querySelector('#f-preco');
@@ -99,12 +97,6 @@ if (root) {
       abrir.setAttribute('aria-expanded', String(!aberto));
       campos.hidden = aberto;
     });
-
-    const formatarHora = (h) => {
-      const inteira = Math.floor(h);
-      const min = Math.round((h - inteira) * 60);
-      return min ? `${inteira}h${String(min).padStart(2, '0')}` : `${inteira}h`;
-    };
 
     // Todos os quartos numa lista so: a contagem roda a cada mexida de
     // controle e nao vale varrer os sete andares de novo toda vez.
@@ -129,15 +121,10 @@ if (root) {
         : fr('contaFiltro', '{n} quartos atendem')).replace('{n}', n);
     }
 
-    hora.addEventListener('input', () => {
-      saidaHora.textContent = formatarHora(Number(hora.value));
-      api.aplicarHora(Number(hora.value));
-    });
     preco.addEventListener('input', () => {
       saidaPreco.textContent = `R$ ${preco.value}`;
     });
     [vista, andar, preco, livre].forEach((el) => el.addEventListener('input', aplicar));
-    saidaHora.textContent = formatarHora(Number(hora.value));
     aplicar();
   }
 

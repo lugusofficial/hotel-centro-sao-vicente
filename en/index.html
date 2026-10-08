@@ -23,12 +23,12 @@
 <link rel="alternate" hreflang="x-default" href="https://lugusofficial.github.io/hotel-centro-sao-vicente/index.html">
 <link rel="stylesheet" href="../css/tokens.css">
 <link rel="stylesheet" href="../css/base.css">
-<link rel="stylesheet" href="../css/site.css?v=236537a8">
+<link rel="stylesheet" href="../css/site.css?v=5c9c3703">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Hotel", "name": "Sua Marca", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/", "telephone": "+0000000000", "email": "reservas@example.com", "address": {"@type": "PostalAddress", "streetAddress": "Rua Exemplo, 123", "addressLocality": "São Vicente", "addressRegion": "SP", "addressCountry": "BR"}, "numberOfRooms": 98, "checkinTime": "14:00", "checkoutTime": "12:00", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Air conditioning"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi throughout the hotel"}, {"@type": "LocationFeatureSpecification", "name": "Cable TV"}, {"@type": "LocationFeatureSpecification", "name": "Minibar"}, {"@type": "LocationFeatureSpecification", "name": "In-room safe"}, {"@type": "LocationFeatureSpecification", "name": "Private bathroom"}, {"@type": "LocationFeatureSpecification", "name": "Breakfast included"}, {"@type": "LocationFeatureSpecification", "name": "Linen changed daily"}]}</script>
 <script type="application/json" id="i18n">{"quarto": "Room", "diaria": "Rate", "andar": "Floor", "vista": "View", "hospedes": "Guests", "disponivel": "Available", "ocupado": "Occupied", "indisponivel": "Not available on these dates", "trocarAndar": "Change floor", "ver": "See the {tipo}", "predioInteiro": "See the whole building", "semSelecao": "Outside view of the building. No room selected.", "emFoco": "Room {numero} in focus, floor {andar}. The other floors have faded.", "vistaMar": "sea", "vistaCidade": "city", "tipos": {"solteiro": "Single Room", "casal": "Double Room", "superior": "Superior Room", "familia": "Family Room"}, "tourSemWebgl": "Tour unavailable in this browser", "tourFalhou": "The tour could not be loaded", "tourCarregando": "Loading the tour", "tourAberto": "Tour open. Drag to look around, or use the buttons below.", "tourParado": "Reduced motion is on. The tour opens still, at the starting point.", "olhouEsq": "Looked left", "olhouDir": "Looked right", "olhouCima": "Looked up", "olhouBaixo": "Looked down", "olhouInicio": "Back to the starting point", "foto": "Photo {i} of {n}", "sol": "Direct sun", "semSol": "Little direct sun", "faixaSol": "{de}h to {ate}h", "contaTodos": "{n} rooms on the facade", "contaFiltro": "{n} rooms match"}</script>
 <script src="../js/main.js" defer></script>
 <script src="../js/app.js?v=cbfe4f37" defer></script>
-<script type="importmap">{"imports":{"three":"../js/vendor/three.module.js","three/addons/":"../js/vendor/","../js/predio.js":"../js/predio.js?v=009ac1bd"}}</script><script type="module" src="../js/predio-init.js?v=b275b3d6"></script>
+<script type="importmap">{"imports":{"three":"../js/vendor/three.module.js","three/addons/":"../js/vendor/","../js/predio.js":"../js/predio.js?v=08d18e9a"}}</script><script type="module" src="../js/predio-init.js?v=d6bd5be6"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -72,16 +72,11 @@
        cena, mas o texto dele e de controle, nao de heroi, e nao deve
        contar no orcamento de palavras daquela secao. -->
   <section class="busca-secao" aria-labelledby="busca-title">
-    <h2 id="busca-title" class="visually-hidden">Time and filters da fachada</h2>
+    <h2 id="busca-title" class="visually-hidden">Facade filters</h2>
     <div class="busca" data-busca hidden>
       <button class="busca__abrir" type="button" data-busca-abrir
-              aria-expanded="false" aria-controls="busca-campos">Time and filters</button>
+              aria-expanded="false" aria-controls="busca-campos">Filters</button>
       <div class="busca__campos" id="busca-campos" hidden>
-        <p class="busca__linha">
-          <label for="f-hora">Time of day</label>
-          <input id="f-hora" type="range" min="5" max="20" step="0.5" value="18.5">
-          <output for="f-hora" data-f-hora>18:30</output>
-        </p>
         <p class="busca__linha">
           <label for="f-vista">View</label>
           <select id="f-vista"><option value="">Any</option><option value="mar">Sea</option><option value="cidade">City</option></select>
