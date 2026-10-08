@@ -178,3 +178,54 @@
 .facts__value { font-family: var(--font-display); font-size: var(--step-1); text-decoration: none; }
 a.facts__value:hover { color: var(--color-accent); text-decoration: underline; }
 @media (min-width: 40em) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-7); } }
+
+/* ============================================================
+   DIVISAO DE CABECALHO E RODAPE, SUPERFICIE E DENSIDADE
+   Tudo por override no site.css: o base.css gerado nao e tocado.
+   ============================================================ */
+
+/* Cabecalho: faixa propria, colada no topo, separada do corpo por regua */
+.site-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-rule);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.site-header .brand { color: var(--color-text); }
+.site-nav a[aria-current="page"] { color: var(--color-accent); }
+
+/* Rodape: faixa escura, corta o corpo de forma inequivoca */
+.site-footer {
+  background: var(--color-text);
+  color: var(--color-rule);
+  margin-top: var(--space-8);
+  border-top: 4px solid var(--color-accent);
+}
+.site-footer .brand,
+.site-footer a { color: var(--color-bg); }
+.site-footer a:hover { text-decoration: underline; }
+
+/* Superficie alternada entre secoes, para o corpo deixar de ser um bege so */
+main > section:nth-of-type(even) {
+  background: var(--color-surface);
+  border-block: 1px solid var(--color-rule);
+}
+
+/* Filete dourado acima do titulo de cada secao */
+.section > .container > h1::before,
+.section > .container > h2::before,
+.section > .container > .stack > h2::before {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  margin-bottom: var(--space-3);
+  background: var(--color-accent);
+}
+
+/* Densidade: encurta o respiro redefinindo o token, sem sobrescrever o padding */
+main { --section-gap: clamp(3rem, 5vw, 4.25rem); }
+.hero { padding-block: var(--space-6) var(--space-7); }
+.rooms__link img { aspect-ratio: 4 / 3; }
+.shot img { aspect-ratio: 3 / 2; }
