@@ -26,7 +26,7 @@
   margin-top: calc(-1 * var(--altura-header, 0px));
 }
 .cena__texto { padding-top: var(--altura-header, 0px); }
-.cena__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
+.cena__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; user-select: none; }
 .cena__veu {
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(100deg, rgba(8,12,26,0.88) 0%, rgba(8,12,26,0.62) 30%, rgba(8,12,26,0.12) 52%, rgba(8,12,26,0) 66%);
@@ -34,6 +34,9 @@
 .cena__texto {
   position: absolute; inset: 0; display: grid; align-content: center;
   pointer-events: none; color: var(--color-bg);
+  /* Espaco reservado para a fileira de chips, que e posicionada por cima:
+     sem isso o texto centralizado encosta neles em tela baixa. */
+  padding-bottom: 6rem;
 }
 .cena__texto .label { color: #f0c489; }
 .cena__texto h1 { max-width: 13ch; color: var(--color-bg); }
@@ -57,22 +60,42 @@
   width: 10px; height: 2px; background: var(--color-accent);
 }
 
-/* Seletor de tipo, abaixo da cena */
-.picker { display: grid; gap: var(--space-2); }
-.picker li { max-width: none; }
-.picker a {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4);
-  padding: var(--space-3); border-radius: var(--radius-md);
-  text-decoration: none; transition: background 200ms ease, color 200ms ease;
+/* Seletor de tipo dentro da cena: e o controle do predio, nao uma lista de
+   quartos. A lista de quartos sao os cartoes mais abaixo. Fica visivel tambem
+   no modo quarto, para trocar de tipo sem voltar a visao geral. */
+.tipos {
+  position: absolute; z-index: 3;
+  left: 0; right: 0; bottom: var(--space-5);
 }
-.picker a:hover, .picker a:focus-visible, .picker a.is-active { background: var(--color-surface); }
-.picker a.is-active .picker__nome { color: var(--color-accent); }
-.picker__nome { font-family: var(--font-display); font-size: var(--step-1); }
-.picker__meta { color: var(--color-muted); font-size: var(--step--1); margin-left: auto; }
-@media (min-width: 56em) {
-  .picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .picker__meta { margin-left: 0; }
+.tipos ul {
+  width: min(100% - 2 * var(--gutter), 64rem);
+  margin-inline: auto;
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  list-style: none; padding: 0;
 }
+.tipos li { max-width: none; }
+.tipos__chip {
+  display: flex; align-items: center;
+  min-height: 2.75rem; padding: 0 var(--space-4);
+  border: 1px solid rgba(246, 239, 227, 0.28);
+  border-radius: 999px;
+  background: rgba(8, 12, 26, 0.45);
+  color: #f6efe3;
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: border-color 220ms ease, color 220ms ease, background 220ms ease;
+}
+.tipos__chip:hover, .tipos__chip:focus-visible {
+  border-color: #f0c489; color: #f0c489;
+}
+.tipos__chip.is-active {
+  border-color: #f0c489; color: #0b1020; background: #f0c489;
+}
+
+/* Cartao que esta comandando o predio, quando os dois estao na tela */
+.rooms__item:has(.is-active) { border-color: var(--color-accent); }
+
 /* Estados da cena. O atributo data-modo e escrito por js/predio-init.js:
    geral (predio inteiro), quarto (andares separados) e vista (dentro do quarto). */
 .cena__texto, .cena__veu { transition: opacity 400ms ease; }
@@ -97,7 +120,9 @@
 .cena:not([data-modo="vista"]) [data-so="vista"] { display: none; }
 
 @media (max-width: 55.99em) {
-  .cena { height: clamp(24rem, 62vh, 34rem); }
+  /* A cena cresce: abaixo deste ponto o texto deixa de ser centralizado e
+     passa a dividir a altura com o titulo quebrado, o predio e os chips. */
+  .cena { height: clamp(32rem, 84svh, 44rem); }
   /* Encostada na base e ainda posicionada: o canvas e absoluto e pinta por cima
      de qualquer filho fora de posicionamento, entao com position static a ficha
      sumia atras dele. Em baixo ela tambem deixa a maquete a vista. */
@@ -109,7 +134,22 @@
   .cena .ficha::after { display: none; }
   .cena .ficha__tipo { font-size: var(--step-1); }
   .cena .ficha__dados { gap: var(--space-2); }
-  .cena__texto { align-content: start; padding-top: var(--space-6); }
+  /* Sem a altura do cabecalho o texto comeca atras dele: a cena sobe por tras
+     do cabecalho e o padding da base e o que reserva a fileira de chips. */
+  .cena__texto {
+    align-content: start;
+    padding-top: calc(var(--altura-header, 0px) + var(--space-5));
+    padding-bottom: 7.5rem;
+  }
+  .cena__texto h1 { font-size: var(--step-3); max-width: 16ch; }
+  .cena__texto .lead { max-width: 30ch; }
+  /* O veu padrao escurece a esquerda, onde o texto fica no formato paisagem.
+     Aqui o texto fica em cima e o predio embaixo, entao o veu vira. */
+  .cena__veu {
+    background: linear-gradient(180deg, rgba(8,12,26,0.94) 0%, rgba(8,12,26,0.88) 46%,
+      rgba(8,12,26,0.24) 66%, rgba(8,12,26,0) 80%);
+  }
+  .tipos__chip { padding: 0 var(--space-3); }
 }
 
 /* Listagem de quartos: cartao delimitado de verdade, com superficie propria,
@@ -119,15 +159,21 @@
 .rooms__item {
   max-width: none;
   display: grid;
-  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-rows: auto 1fr auto auto;
   gap: 0;
   background: var(--color-bg);
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
   overflow: hidden;
   padding-bottom: var(--space-4);
+  position: relative;
+  cursor: pointer;
   transition: border-color 220ms ease, transform 220ms ease;
 }
+/* O link cobre o cartao inteiro: clicar em qualquer lugar abre o quarto e o
+   ponteiro vira maozinha, em vez do cursor de selecao de texto. */
+.rooms__link::after { content: ""; position: absolute; inset: 0; }
+.rooms__item :where(h2, h3, p) { user-select: none; }
 .rooms__item:hover { border-color: var(--color-accent); transform: translateY(-2px); }
 .rooms__link { text-decoration: none; display: grid; gap: 0; }
 .rooms__link img {
@@ -162,13 +208,18 @@
 .rooms__preco {
   margin: 0 var(--space-4);
   padding-top: var(--space-3);
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.1em 0.4em;
+  display: grid;
+  gap: 2px;
 }
-.rooms__preco span { font-size: var(--step--1); color: var(--color-muted); }
-.rooms__preco strong {
+.rooms__desde {
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.rooms__valor { display: flex; align-items: baseline; gap: 0.35em; }
+.rooms__valor span { font-size: var(--step--1); color: var(--color-muted); }
+.rooms__valor strong {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
   font-size: var(--step-2);
@@ -245,8 +296,17 @@
 
 /* Comodidades */
 .amen { display: grid; gap: var(--space-3); }
-.amen li { max-width: none; padding-left: var(--space-4); position: relative; }
-.amen li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 0.5rem; height: 1px; background: var(--color-accent); }
+.amen li {
+  max-width: none;
+  display: grid; grid-template-columns: 1.25rem 1fr;
+  gap: var(--space-3); align-items: start;
+}
+/* Classe propria, nao .icon: o base.css impoe stroke-width 1.75 a .icon e o
+   conjunto foi equilibrado em 1.5. */
+.amen__icone {
+  width: 1.25rem; height: 1.25rem; margin-top: 0.1em;
+  color: var(--color-accent); flex: none;
+}
 @media (min-width: 40em) { .amen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-6); } }
 
 /* Outros quartos */

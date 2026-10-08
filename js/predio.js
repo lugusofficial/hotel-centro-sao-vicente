@@ -217,16 +217,47 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   sol.target.position.set(0, alturaTotal * 0.45, 0);
   sol.target.updateMatrixWorld();
 
-  const alvo = new THREE.Vector3(-largura * 0.52, alturaTotal * 0.46, 0);
-  // Distancia derivada do tamanho real do predio e do campo de visao, para a
-  // cena caber em qualquer proporcao de tela em vez de depender de numero magico.
+  const alvo = new THREE.Vector3();
   const caixa = new THREE.Box3().setFromObject(predio);
   const esfera = caixa.getBoundingSphere(new THREE.Sphere());
+
+  // O alvo acompanha o formato da tela. Na paisagem o predio vai para a direita
+  // porque o texto do heroi ocupa a esquerda; no retrato o texto fica em cima,
+  // entao o predio centraliza e desce. Olhar mais alto desce o predio no quadro.
+  function posicionarAlvo() {
+    const retrato = camera.aspect < 1.1;
+    alvo.set(retrato ? -largura * 0.06 : -largura * 0.52,
+             alturaTotal * (retrato ? 0.80 : 0.46), 0);
+  }
+
+  // Distancia derivada do predio e do campo de visao, sem numero magico.
+  // Pela esfera nao serve: o alvo fica fora do centro do predio para abrir
+  // espaco ao texto, e somar essa folga ao raio trata uma folga horizontal como
+  // se fosse vertical. Entao cada canto da caixa e levado para os eixos da tela
+  // e cada um diz a distancia minima para caber no seu eixo; vale a maior.
+  const eixoDir = new THREE.Vector3();
+  const eixoCima = new THREE.Vector3();
+  const canto = new THREE.Vector3();
   function distanciaParaCaber() {
     const vFov = THREE.MathUtils.degToRad(camera.fov);
-    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return (esfera.radius / Math.sin(Math.min(vFov, hFov) / 2)) * 1.02;
+    const tanV = Math.tan(vFov / 2);
+    const tanH = tanV * camera.aspect;
+    eixoDir.crossVectors(direcao, camera.up).normalize();
+    eixoCima.crossVectors(eixoDir, direcao).normalize();
+    let d = 0;
+    for (let i = 0; i < 8; i += 1) {
+      canto.set(i & 1 ? caixa.max.x : caixa.min.x,
+                i & 2 ? caixa.max.y : caixa.min.y,
+                i & 4 ? caixa.max.z : caixa.min.z).sub(alvo);
+      // Profundidade do canto na direcao da camera: um canto mais perto dela
+      // exige recuar mais para continuar dentro do tronco de visao.
+      const z = canto.dot(direcao);
+      d = Math.max(d, z + Math.abs(canto.dot(eixoDir)) / tanH,
+                      z + Math.abs(canto.dot(eixoCima)) / tanV);
+    }
+    return d * 1.06;
   }
+  posicionarAlvo();
   const direcao = new THREE.Vector3(0.58, 0.17, 1).normalize();
   camera.position.copy(alvo).addScaledVector(direcao, Math.max(largura, alturaTotal) * 2);
   const controls = new OrbitControls(camera, canvas);
@@ -239,7 +270,10 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   function limitesGerais() {
     controls.minDistance = esfera.radius * 0.9;
-    controls.maxDistance = esfera.radius * 4.2;
+    // O teto acompanha o enquadramento. Era um multiplo fixo do raio, e em tela
+    // de celular o enquadramento pede quase o dobro disso: o OrbitControls
+    // puxava a camera de volta no update seguinte e a fachada saia cortada.
+    controls.maxDistance = Math.max(esfera.radius * 4.2, distanciaParaCaber() * 1.25);
     controls.minPolarAngle = 0.35;
     controls.maxPolarAngle = Math.PI / 2 - 0.05;
     controls.minAzimuthAngle = -Infinity;
@@ -512,6 +546,9 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   function selecionar(numero, opcoes = {}) {
     const ref = porQuarto.get(numero);
     if (!ref) return;
+    // Pedir de novo o quarto que ja esta em foco nao refaz o voo: senao mover o
+    // mouse dentro do mesmo cartao reiniciava a animacao a cada quadro.
+    if (ref === escolhido && modo === 'quarto') return;
     clearTimeout(tempoFoco);
     if (modo === 'vista') restaurarInterior();
     const antigo = escolhido;
@@ -608,6 +645,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   }
 
   function enquadrar() {
+    posicionarAlvo();
+    if (modo === 'geral') limitesGerais();
     camera.position.copy(alvo).addScaledVector(direcao, distanciaParaCaber());
     controls.target.copy(alvo);
     controls.update();

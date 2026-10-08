@@ -46,6 +46,11 @@ if (root) {
       canvas,
       tooltip,
       onSelecionar(q, tipo) {
+        // Marca o tipo escolhido nos chips da cena e no cartao correspondente,
+        // inclusive quando a escolha veio de um clique na janela do predio.
+        document.querySelectorAll('[data-room-link]').forEach((a) => {
+          a.classList.toggle('is-active', a.getAttribute('href') === tipo.pagina);
+        });
         if (!ficha) return;
         ficha.hidden = false;
         const disp = q.status === 'disponivel';
@@ -71,6 +76,8 @@ if (root) {
       onModo(modo, q) {
         root.setAttribute('data-modo', modo);
         if (modo === 'geral') {
+          document.querySelectorAll('[data-room-link].is-active')
+            .forEach((a) => a.classList.remove('is-active'));
           if (ficha) {
             ficha.hidden = true;
             ficha.style.left = ficha.style.top = ficha.style.opacity = '';
@@ -109,15 +116,28 @@ if (root) {
       .then((pronto) => {
         api = pronto;
         root.setAttribute('data-pronto', 'true');
-        // A lista HTML comanda o 3D: passar o mouse ou focar escolhe o quarto,
-        // separa os andares e leva a câmera até a janela. O atraso evita que
-        // varrer a lista de raspão dispare um voo atrás do outro.
-        // Busca no documento, não em root: a lista de tipos é uma seção irmã
-        // da cena, então root.querySelectorAll nunca achava nada.
+        // Os cartoes de quarto comandam o predio: apontar para um escolhe o
+        // quarto, separa os andares e leva a camera ate a janela. O atraso
+        // evita que varrer os cartoes de raspao dispare um voo atras do outro.
+        // Busca no documento, nao em root: os cartoes sao de uma secao irma
+        // da cena, entao root.querySelectorAll nunca achava nada.
+        //
+        // Escuta pointermove, nao mouseenter: mouseenter tambem dispara quando
+        // a pagina rola e o cartao passa por baixo de um cursor parado, ou
+        // quando o reveal desloca o cartao. Era isso que fazia o predio
+        // escolher quarto sozinho, sem ninguem mexer no mouse.
+        //
+        // E com a cena fora da tela nao se escolhe nada: o voo aconteceria onde
+        // ninguem ve e o visitante voltaria para cima achando o predio desmontado.
+        let cenaVisivel = true;
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver((es) => { cenaVisivel = es[0].isIntersecting; },
+            { threshold: 0.3 }).observe(root);
+        }
         document.querySelectorAll('[data-quarto]').forEach((a) => {
           const n = Number(a.getAttribute('data-quarto'));
-          const sel = () => api.selecionar(n, { atraso: 220 });
-          a.addEventListener('mouseenter', sel);
+          const sel = () => { if (cenaVisivel) api.selecionar(n, { atraso: 220 }); };
+          a.addEventListener('pointermove', (ev) => { if (ev.pointerType === 'mouse') sel(); });
           a.addEventListener('focus', sel);
         });
       })
