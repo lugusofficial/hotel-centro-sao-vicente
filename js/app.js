@@ -115,12 +115,18 @@
     sentinela.style.cssText = 'position:absolute;left:0;bottom:0;width:1px;height:1px;pointer-events:none;';
     cena.appendChild(sentinela);
 
+    // A cena sobe por tras do cabecalho: sem isso ele fica transparente sobre o
+    // fundo claro da pagina e o texto claro some. A medida vai para o CSS como
+    // variavel, com padrao 0px, entao sem script nada se desloca.
+    var alturaHeader = Math.round(header.offsetHeight);
+    document.documentElement.style.setProperty('--altura-header', alturaHeader + 'px');
+
     header.setAttribute('data-sobre', 'true');
     var obs = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
         header.setAttribute('data-sobre', e.isIntersecting ? 'true' : 'false');
       });
-    }, { rootMargin: '-' + Math.round(header.offsetHeight) + 'px 0px 0px 0px', threshold: 0 });
+    }, { rootMargin: '-' + alturaHeader + 'px 0px 0px 0px', threshold: 0 });
     obs.observe(sentinela);
   }
 
