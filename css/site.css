@@ -534,13 +534,16 @@ body > main > .section:only-child { margin-block: auto; }
 }
 .idiomas a, .idiomas__atual {
   display: flex; align-items: center; justify-content: center;
-  min-width: 2.75rem; min-height: 2.75rem;   /* alvo da WCAG 2.5.8 */
+  /* 2rem por 2,25rem: acima do minimo de 24 px do criterio 2.5.8 e estreito o
+     bastante para a barra nao quebrar em linha dupla por volta de 900 px, que
+     era o que jogava o seletor por cima do heroi. */
+  min-width: 2rem; min-height: 2.25rem;
   text-decoration: none; border-radius: var(--radius-pill);
   color: var(--tinta);
 }
 .idiomas__atual { font-weight: 600; text-decoration: underline; text-underline-offset: 0.3em; }
 .idiomas a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
-@media (min-width: 48em) { .idiomas { margin-left: 0; order: 3; } }
+@media (min-width: 48em) { .idiomas { margin-left: var(--space-3); order: 3; } }
 
 /* Icone do bloco: mesma familia de traco das comodidades, alinhado com o
    titulo em vez de empurra-lo para o lado, que e o que acontece quando o
@@ -551,4 +554,15 @@ body > main > .section:only-child { margin-block: auto; }
 .blocos__icone {
   width: 1.5rem; height: 1.5rem; align-self: center;
   color: var(--color-accent); flex: none;
+}
+
+/* O menu horizontal so a partir de 60em. O base.css abre ele em 48em, e entre
+   768 e 960 px cinco links, o botao de reserva e o seletor de idioma nao cabem
+   na mesma linha: a barra quebrava em duas e o seletor caia sobre o heroi.
+   Abaixo de 60em o menu sanfonado diz a verdade sobre o espaco que existe. */
+@media (max-width: 59.99em) {
+  .nav-toggle { display: inline-flex; }
+  .site-nav { display: none; width: 100%; padding-top: var(--space-4); }
+  .site-nav[data-open="true"] { display: block; }
+  .site-nav ul { flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
 }

@@ -118,6 +118,11 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     faixa: new THREE.MeshStandardMaterial({ color: 0xa7967a, roughness: 0.58, metalness: 0.08 }),
     base: new THREE.MeshStandardMaterial({ color: 0x4a443d, roughness: 0.55, metalness: 0.15 }),
     soleira: new THREE.MeshStandardMaterial({ color: 0x8e8070, roughness: 0.7, metalness: 0.05 }),
+    // A laje do terraco olha para cima, e para cima so existe o azul escuro do
+    // ceu de anoitecer: com a pedra escura do terreo ela virava um buraco
+    // preto no alto do predio. Cor clara propria resolve sem tocar na paleta
+    // do CSS, que ja esta no limite.
+    terraco: new THREE.MeshStandardMaterial({ color: 0x9a927f, roughness: 0.95, metalness: 0 }),
     esquadria: new THREE.MeshStandardMaterial({ color: 0x1f1c18, roughness: 0.45, metalness: 0.5 }),
     // A janela e a propria luz: MeshBasicMaterial ignora as luzes da cena, entao
     // a cor da instancia vira brilho direto. Quarto livre fica quente e aceso,
@@ -169,6 +174,22 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     g.add(caixa, cana);
     g.pecas = [caixa, cana];
     return g;
+  }
+
+  // O mesmo contorno em estadio, agora como forma plana: so a forma aceita
+  // furo, e e o furo que transforma a platibanda em mureta vazada em vez de
+  // mais um bloco macico tapando o terraco.
+  function contornoEstadio(f) {
+    const R = prof / 2 + f;
+    const dir = largura / 2;          // eixo da curva
+    const esq = -(largura / 2 + f);
+    const s = new THREE.Shape();
+    s.moveTo(esq, -R);
+    s.lineTo(dir, -R);
+    s.absarc(dir, 0, R, -Math.PI / 2, Math.PI / 2, false);
+    s.lineTo(esq, R);
+    s.closePath();
+    return s;
   }
 
   const predio = new THREE.Group();
@@ -380,11 +401,52 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
                    meta, locais, normais, baseY, alvoY: baseY, fantasma: false });
   });
 
+  // Coroamento: a cinta que arremata a fachada.
   const topoBase = alturaTotal + 0.4;
   const topo = estadio(0.35, 0.8, M.faixa);
   topo.position.y = topoBase;
   topo.pecas.forEach((m) => { m.castShadow = true; });
   predio.add(topo);
+
+  // Terraco. O que existia era a face de cima do coroamento: uma tampa lisa
+  // maior que o predio, que de cima lia como tampa de caixa. Predio de rua tem
+  // platibanda em volta, laje recuada dentro dela e caixa d'agua e casa de
+  // maquinas em cima. Sem isso o volume termina em nada.
+  const LAJE = alturaTotal + 0.8;
+  const ALTURA_MURETA = 1.0;
+
+  const forma = contornoEstadio(0.1);
+  const dentro = contornoEstadio(-0.3).getPoints(64);
+  dentro.reverse();                 // furo corre ao contrario do contorno
+  forma.holes.push(new THREE.Path(dentro));
+  const mureta = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(forma, { depth: ALTURA_MURETA, bevelEnabled: false }),
+    M.faixa);
+  mureta.rotation.x = -Math.PI / 2; // a forma e desenhada deitada
+  mureta.position.y = LAJE;
+  mureta.castShadow = mureta.receiveShadow = true;
+  predio.add(mureta);
+
+  const laje = estadio(-0.3, 0.12, M.terraco);
+  laje.position.y = LAJE + 0.06;
+  laje.pecas.forEach((m) => { m.receiveShadow = true; });
+  predio.add(laje);
+
+  // Casa de maquinas e duas caixas d'agua, que e o que se ve de cima de um
+  // predio assim e o que quebra o plano vazio.
+  const casa = new THREE.Mesh(
+    new THREE.BoxGeometry(largura * 0.26, 2.6, prof * 0.42), M.faixa);
+  casa.position.set(-largura * 0.22, LAJE + 1.3, 0);
+  casa.castShadow = casa.receiveShadow = true;
+  predio.add(casa);
+
+  const geoCaixa = new THREE.CylinderGeometry(1.25, 1.25, 1.9, 16);
+  [-1, 1].forEach((lado) => {
+    const cx = new THREE.Mesh(geoCaixa, M.terraco);
+    cx.position.set(largura * 0.16, LAJE + 0.95, lado * prof * 0.2);
+    cx.castShadow = cx.receiveShadow = true;
+    predio.add(cx);
+  });
 
   sol.target.position.set(0, alturaTotal * 0.45, 0);
   sol.target.updateMatrixWorld();
