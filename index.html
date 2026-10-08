@@ -44,22 +44,25 @@
 </header>
 <main id="main">
 
-  <section class="hero" id="top" aria-labelledby="page-title" data-predio>
-    <div class="container hero__grid">
-      <div class="hero__text stack">
+  <section class="cena" id="top" aria-labelledby="page-title" data-predio>
+    <canvas class="cena__canvas" data-predio-canvas aria-hidden="true"></canvas>
+    <div class="cena__veu" aria-hidden="true"></div>
+    <div class="cena__texto">
+      <div class="container stack">
         <p class="label">Centro de São Vicente</p>
         <h1 id="page-title">Escolha o seu quarto na fachada</h1>
-        <p class="lead">Noventa e oito quartos em sete andares. Gire o prédio e clique na janela que interessa.</p>
-        <div class="ficha" data-predio-ficha hidden></div>
-        <p class="hero__status" data-predio-status role="status"></p>
-      </div>
-      <div class="hero__maq">
-        <canvas class="hero__canvas" data-predio-canvas aria-hidden="true"></canvas>
-        <div class="tip" data-predio-tooltip hidden></div>
-        <p class="hero__aviso" data-predio-aviso hidden>Sem WebGL o prédio não abre. A lista de quartos abaixo tem a mesma informação.</p>
+        <p class="lead">Noventa e oito quartos em sete andares. As janelas acesas estão livres. Gire o prédio e clique na que interessa.</p>
       </div>
     </div>
-    <div class="container">
+    <div class="ficha" data-predio-ficha hidden></div>
+    <div class="tip" data-predio-tooltip hidden></div>
+    <p class="cena__aviso" data-predio-aviso hidden>Sem WebGL o prédio não abre. A lista de quartos abaixo tem a mesma informação.</p>
+    <p class="visually-hidden" data-predio-status role="status"></p>
+  </section>
+
+  <section class="section section--picker" aria-labelledby="tipos-title">
+    <div class="container stack--lg">
+      <h2 id="tipos-title" class="visually-hidden">Tipos de quarto</h2>
       <ul class="picker"><li><a href="quarto-solteiro.html" data-room-link data-quarto="401" data-announce="Quarto Solteiro, 12 metros quadrados, até 1 hóspedes, a partir de R$ 150."><span class="picker__nome">Quarto Solteiro</span><span class="picker__meta">12 m² · R$ 150</span></a></li><li><a href="quarto-casal.html" data-room-link data-quarto="402" data-announce="Quarto Casal, 18 metros quadrados, até 2 hóspedes, a partir de R$ 210."><span class="picker__nome">Quarto Casal</span><span class="picker__meta">18 m² · R$ 210</span></a></li><li><a href="quarto-superior.html" data-room-link data-quarto="404" data-announce="Quarto Superior, 24 metros quadrados, até 2 hóspedes, a partir de R$ 290."><span class="picker__nome">Quarto Superior</span><span class="picker__meta">24 m² · R$ 290</span></a></li><li><a href="quarto-familia.html" data-room-link data-quarto="407" data-announce="Quarto Família, 28 metros quadrados, até 4 hóspedes, a partir de R$ 360."><span class="picker__nome">Quarto Família</span><span class="picker__meta">28 m² · R$ 360</span></a></li></ul>
     </div>
   </section>

@@ -47,6 +47,23 @@ if (root) {
           status.textContent = `Quarto ${q.numero} selecionado. ${tipo.nome}, R$ ${q.precoBase} a diária, vista ${q.vista}, ${disp ? 'disponível' : 'indisponível'}.`;
         }
       },
+      // A ficha acompanha a janela escolhida, saindo de dentro do prédio.
+      // Em tela estreita o CSS a tira do posicionamento absoluto e isto não atrapalha.
+      onQuadro(p) {
+        if (!ficha || ficha.hidden || !p) return;
+        if (window.matchMedia('(max-width: 55.99em)').matches) {
+          ficha.style.left = ficha.style.top = '';
+          return;
+        }
+        const margem = 24;
+        const meia = ficha.offsetWidth / 2 || 150;
+        const altura = ficha.offsetHeight / 2 || 120;
+        const paraDireita = p.x < p.largura * 0.62;
+        const x = paraDireita ? p.x + meia + margem : p.x - meia - margem;
+        ficha.style.left = `${Math.min(Math.max(x, meia + 8), p.largura - meia - 8)}px`;
+        ficha.style.top = `${Math.min(Math.max(p.y, altura + 8), p.altura - altura - 8)}px`;
+        ficha.style.opacity = p.frente ? '1' : '0.25';
+      },
     })
       .then((api) => {
         root.setAttribute('data-pronto', 'true');
