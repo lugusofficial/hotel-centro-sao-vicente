@@ -24,7 +24,7 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Hotel", "name": "Sua Marca", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/", "telephone": "+0000000000", "email": "reservas@example.com", "address": {"@type": "PostalAddress", "streetAddress": "Rua Exemplo, 123", "addressLocality": "São Vicente", "addressRegion": "SP", "addressCountry": "BR"}, "numberOfRooms": 98, "checkinTime": "14:00", "checkoutTime": "12:00", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Ar condicionado"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi em todo o hotel"}, {"@type": "LocationFeatureSpecification", "name": "TV por assinatura"}, {"@type": "LocationFeatureSpecification", "name": "Frigobar"}, {"@type": "LocationFeatureSpecification", "name": "Cofre individual"}, {"@type": "LocationFeatureSpecification", "name": "Banheiro privativo"}, {"@type": "LocationFeatureSpecification", "name": "Café da manhã incluso"}, {"@type": "LocationFeatureSpecification", "name": "Enxoval trocado diariamente"}]}</script>
 <script src="js/main.js" defer></script>
 <script src="js/app.js" defer></script>
-
+<script src="js/hotel3d.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Pular para o conteúdo</a>
@@ -44,14 +44,32 @@
 </header>
 <main id="main">
 
-  <section class="hero" id="top" aria-labelledby="page-title">
-    <div class="container hero__inner">
-      <p class="label">Centro de São Vicente</p>
-      <h1 id="page-title">Noventa e oito quartos a dez minutos da praia</h1>
-      <p class="lead">Recepção 24 horas, café da manhã incluso e espaço para eventos na mesma casa.</p>
-      <p class="cluster"><a class="btn btn--primary" href="quartos.html">Ver quartos e diárias</a> <a class="btn btn--link" href="contato.html">Como chegar</a></p>
+  <section class="hero" id="top" aria-labelledby="page-title" data-hotel3d>
+    <div class="container hero__grid">
+      <div class="hero__text stack">
+        <p class="label">Centro de São Vicente</p>
+        <h1 id="page-title">Escolha o seu quarto pela maquete</h1>
+        <p class="lead">Os quatro tipos na mesma escala, lado a lado. Gire, clique e veja a diária.</p>
+        <p><a class="btn btn--primary" href="quartos.html">Ver quartos e diárias</a></p>
+      </div>
+      <div class="hero__maq">
+        <canvas class="hero__canvas" width="1000" height="680" aria-hidden="true"></canvas>
+        <div class="hero__cover" data-hotel3d-cover>
+          <img src="assets/recepcao-1.jpg" alt="" width="1216" height="832">
+          <button class="hero__open" type="button">Abrir a maquete</button>
+        </div>
+        <div class="hero__hcontrols">
+          <button class="maquete__btn" type="button" data-hview="frente">De frente</button>
+          <button class="maquete__btn" type="button" data-hview="cima">De cima</button>
+          <button class="maquete__btn" type="button" data-hview="esq"><span aria-hidden="true">&#8634;</span><span class="visually-hidden">Girar para a esquerda</span></button>
+          <button class="maquete__btn" type="button" data-hview="dir"><span aria-hidden="true">&#8635;</span><span class="visually-hidden">Girar para a direita</span></button>
+        </div>
+        <p class="hero__status" data-hotel3d-status role="status"></p>
+      </div>
     </div>
-    <figure class="hero__media"><img src="assets/recepcao-1.jpg" alt="Recepção do hotel com balcão de madeira e poltronas" width="1216" height="832"></figure>
+    <div class="container">
+      <ul class="picker"><li><a href="quarto-solteiro.html" data-room-link data-announce="Quarto Solteiro, 12 metros quadrados, até 1 hóspedes, a partir de R$ 150."><span class="picker__nome">Quarto Solteiro</span><span class="picker__meta">12 m² · R$ 150</span></a></li><li><a href="quarto-casal.html" data-room-link data-announce="Quarto Casal, 18 metros quadrados, até 2 hóspedes, a partir de R$ 210."><span class="picker__nome">Quarto Casal</span><span class="picker__meta">18 m² · R$ 210</span></a></li><li><a href="quarto-superior.html" data-room-link data-announce="Quarto Superior, 24 metros quadrados, até 2 hóspedes, a partir de R$ 290."><span class="picker__nome">Quarto Superior</span><span class="picker__meta">24 m² · R$ 290</span></a></li><li><a href="quarto-familia.html" data-room-link data-announce="Quarto Família, 28 metros quadrados, até 4 hóspedes, a partir de R$ 360."><span class="picker__nome">Quarto Família</span><span class="picker__meta">28 m² · R$ 360</span></a></li></ul>
+    </div>
   </section>
 
   <section class="section" aria-labelledby="quartos-title">
