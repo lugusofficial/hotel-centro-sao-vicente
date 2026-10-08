@@ -162,13 +162,19 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // o eixo da cana nao se mexe com a folga: so o raio cresce. Somar a folga ao
   // raio e ao eixo ao mesmo tempo, que foi o que eu fiz antes, faz a peca sair
   // o dobro bem na ponta e vira uma aleta saindo do predio.
-  function estadio(f, alturaY, material) {
+  // fechada: a meia cana ganha tampa em cima e embaixo. O padrao e aberta, que
+  // basta nos volumes altos, onde as tampas ficariam escondidas e ainda
+  // brigariam em z com a cinta logo acima. Na laje do terraco, que tem doze
+  // centimetros, a falta da tampa deixava a parte curva do teto vazada: dava
+  // para ver atraves dela ate as janelas da ponta.
+  function estadio(f, alturaY, material, fechada = false) {
     const g = new THREE.Group();
     const caixa = new THREE.Mesh(
       new THREE.BoxGeometry(largura + f, alturaY, prof + 2 * f), material);
     caixa.position.x = -f / 2;          // termina no eixo da cana, do lado da ponta
     const cana = new THREE.Mesh(
-      new THREE.CylinderGeometry(prof / 2 + f, prof / 2 + f, alturaY, 28, 1, true, 0, Math.PI),
+      new THREE.CylinderGeometry(prof / 2 + f, prof / 2 + f, alturaY, 28, 1,
+                                 !fechada, 0, Math.PI),
       material);
     cana.position.x = largura / 2;
     g.add(caixa, cana);
@@ -427,7 +433,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   mureta.castShadow = mureta.receiveShadow = true;
   predio.add(mureta);
 
-  const laje = estadio(-0.3, 0.12, M.terraco);
+  const laje = estadio(-0.3, 0.12, M.terraco, true);
   laje.position.y = LAJE + 0.06;
   laje.pecas.forEach((m) => { m.receiveShadow = true; });
   predio.add(laje);
