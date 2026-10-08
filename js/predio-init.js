@@ -12,6 +12,21 @@ if (root) {
 
   let api = null;
 
+  // Fileira de andares da ficha. Em branco ate o 3D subir, porque e dele que
+  // vem a lista de andares do hotel.
+  const linhaAndares = (numero) => {
+    if (!api) return '';
+    const atual = Math.floor(numero / 100);
+    const botoes = api.hotel.andares.map((a) => {
+      const aqui = a.numero === atual;
+      return `<button type="button" data-andar="${a.numero}"`
+        + `${aqui ? ' aria-current="true"' : ''}>`
+        + `<span class="visually-hidden">Andar </span>${a.numero}</button>`;
+    }).join('');
+    return `<div class="ficha__andares"><span class="ficha__rotulo" id="ficha-andares">Trocar de andar</span>`
+      + `<div role="group" aria-labelledby="ficha-andares">${botoes}</div></div>`;
+  };
+
   const semWebgl = () => {
     root.removeAttribute('data-pronto');
     root.removeAttribute('data-modo');
@@ -20,15 +35,22 @@ if (root) {
 
   const anunciar = (texto) => { if (status) status.textContent = texto; };
 
+  // Numero do quarto em foco, para a troca de andar saber de onde sai.
+  let quartoAtual = null;
+
   // Os botoes da ficha sao recriados a cada selecao, entao a escuta fica no
   // contorno e nao nos botoes.
   if (ficha) {
     ficha.addEventListener('click', (ev) => {
-      const b = ev.target.closest('button[data-acao]');
+      const b = ev.target.closest('button[data-acao], button[data-andar]');
       if (!b || !api) return;
-      if (b.dataset.acao === 'vista') api.verVista();
-      else if (b.dataset.acao === 'voltar') api.voltarDaVista();
-      else if (b.dataset.acao === 'geral') api.verGeral();
+      if (b.dataset.acao === 'geral') { api.verGeral(); return; }
+      // Mesma posicao na fachada, outro andar: o numero e andar vezes cem mais
+      // a posicao, entao 412 no quinto andar e 512. Antes so dava para trocar
+      // de andar voltando ao predio inteiro e procurando a janela de novo.
+      if (b.dataset.andar && quartoAtual) {
+        api.selecionar(Number(b.dataset.andar) * 100 + (quartoAtual % 100));
+      }
     });
   }
 
@@ -46,10 +68,13 @@ if (root) {
       canvas,
       tooltip,
       onSelecionar(q, tipo) {
-        // Marca o tipo escolhido nos chips da cena e no cartao correspondente,
-        // inclusive quando a escolha veio de um clique na janela do predio.
-        document.querySelectorAll('[data-room-link]').forEach((a) => {
-          a.classList.toggle('is-active', a.getAttribute('href') === tipo.pagina);
+        quartoAtual = q.numero;
+        // Marca o tipo escolhido nos chips, inclusive quando a escolha veio de
+        // um clique na janela do predio.
+        document.querySelectorAll('[data-room-link]').forEach((el) => {
+          const seu = el.dataset.pagina === tipo.pagina;
+          el.classList.toggle('is-active', seu);
+          if (el.tagName === 'BUTTON') el.setAttribute('aria-pressed', String(seu));
         });
         if (!ficha) return;
         ficha.hidden = false;
@@ -64,10 +89,9 @@ if (root) {
             <div><dt>Hóspedes</dt><dd>${tipo.hosp}</dd></div>
           </dl>
           <p class="ficha__estado" data-disp="${disp}">${disp ? 'Disponível' : 'Indisponível nas datas'}</p>
+          ${linhaAndares(q.numero)}
           <p><a class="btn btn--primary" href="${tipo.pagina}">Ver o ${tipo.nome}</a></p>
           <p class="ficha__acoes">
-            <button type="button" class="btn btn--link" data-acao="vista" data-so="quarto">Ver a vista da janela</button>
-            <button type="button" class="btn btn--link" data-acao="voltar" data-so="vista">Voltar ao quarto</button>
             <button type="button" class="btn btn--link" data-acao="geral">Ver o prédio inteiro</button>
           </p>`;
       },
@@ -116,29 +140,25 @@ if (root) {
       .then((pronto) => {
         api = pronto;
         root.setAttribute('data-pronto', 'true');
-        // Os cartoes de quarto comandam o predio: apontar para um escolhe o
-        // quarto, separa os andares e leva a camera ate a janela. O atraso
-        // evita que varrer os cartoes de raspao dispare um voo atras do outro.
-        // Busca no documento, nao em root: os cartoes sao de uma secao irma
-        // da cena, entao root.querySelectorAll nunca achava nada.
+        // Os chips da cena viram botoes agora que o predio esta de pe: eles
+        // passam a trocar a selecao na fachada em vez de sair da pagina. Sem
+        // JavaScript ou sem WebGL continuam sendo links para a pagina do tipo,
+        // que e o destino util quando nao ha fachada para comandar.
         //
-        // Escuta pointermove, nao mouseenter: mouseenter tambem dispara quando
-        // a pagina rola e o cartao passa por baixo de um cursor parado, ou
-        // quando o reveal desloca o cartao. Era isso que fazia o predio
-        // escolher quarto sozinho, sem ninguem mexer no mouse.
-        //
-        // E com a cena fora da tela nao se escolhe nada: o voo aconteceria onde
-        // ninguem ve e o visitante voltaria para cima achando o predio desmontado.
-        let cenaVisivel = true;
-        if ('IntersectionObserver' in window) {
-          new IntersectionObserver((es) => { cenaVisivel = es[0].isIntersecting; },
-            { threshold: 0.3 }).observe(root);
-        }
-        document.querySelectorAll('[data-quarto]').forEach((a) => {
-          const n = Number(a.getAttribute('data-quarto'));
-          const sel = () => { if (cenaVisivel) api.selecionar(n, { atraso: 220 }); };
-          a.addEventListener('pointermove', (ev) => { if (ev.pointerType === 'mouse') sel(); });
-          a.addEventListener('focus', sel);
+        // So no clique. Antes a escolha vinha de passar o mouse, e isso disparava
+        // um voo em cada chip que o ponteiro cruzasse no caminho ate o que
+        // interessava.
+        root.querySelectorAll('a[data-room-link]').forEach((a) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = a.className;
+          b.textContent = a.textContent;
+          b.dataset.roomLink = '';
+          b.dataset.pagina = a.dataset.pagina;
+          b.dataset.quarto = a.dataset.quarto;
+          b.setAttribute('aria-pressed', 'false');
+          b.addEventListener('click', () => api.selecionar(Number(b.dataset.quarto)));
+          a.replaceWith(b);
         });
       })
       .catch(semWebgl);

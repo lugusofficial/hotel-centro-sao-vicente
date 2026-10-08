@@ -15,7 +15,6 @@
 // M2, tres estados de camera:
 //   geral  -> predio inteiro, orbita livre, todos os andares solidos
 //   quarto -> andares afastados, so o escolhido solido, camera perto da janela
-//   vista  -> camera dentro do quarto, olhando para fora pela janela
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -35,8 +34,6 @@ const DIST_ORBITA = 58;     // distancia da camera a janela no modo quarto. A 26
                             // da pilha aberta, que e justamente o que o modo tem de melhor
                             // o bastante para ler a janela, longe o bastante para
                             // o afastamento dos andares aparecer
-const RECUO_OLHO = 1.6;     // quanto a camera entra no quarto no modo vista
-const ALCANCE_VISTA = 11;   // alvo a frente da janela no modo vista
 const CIMA = new THREE.Vector3(0, 1, 0);
 
 const semMovimento = () =>
@@ -291,19 +288,6 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     controls.enableZoom = true;
     controls.enablePan = false;
   }
-  // "Olhar ao redor pela janela" sem escrever controlador de primeira pessoa:
-  // o alvo vai para um ponto la fora, a distancia fica travada e os angulos
-  // limitados. O OrbitControls continua o mesmo, so que preso.
-  function limitesVista(olho, mira) {
-    const s = new THREE.Spherical().setFromVector3(olho.clone().sub(mira));
-    controls.minDistance = controls.maxDistance = s.radius;
-    controls.minAzimuthAngle = s.theta - 0.5;
-    controls.maxAzimuthAngle = s.theta + 0.5;
-    controls.minPolarAngle = Math.max(0.08, s.phi - 0.3);
-    controls.maxPolarAngle = Math.min(Math.PI - 0.08, s.phi + 0.3);
-    controls.enableZoom = false; // distancia travada: deixa a roda rolar a pagina
-    controls.enablePan = false;
-  }
   limitesGerais();
   controls.update();
 
@@ -466,7 +450,6 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   const projetado = new THREE.Vector3();
   let hover = null, escolhido = null, pendente = null;
   let modo = 'geral';
-  let tempoFoco = 0;
 
   const mesmo = (a, b) => a && b && a.andarIdx === b.andarIdx && a.instanceId === b.instanceId;
   const avisarModo = () => { if (onModo) onModo(modo, escolhido ? andares[escolhido.andarIdx].meta[escolhido.instanceId] : null); };
@@ -482,7 +465,6 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   }
 
   function achar(ev) {
-    if (modo === 'vista') return null;
     const r = canvas.getBoundingClientRect();
     ponteiro.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
     ponteiro.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
@@ -527,15 +509,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     if (ref) selecionar(andares[ref.andarIdx].meta[ref.instanceId].numero);
   });
 
-  // ----------------------------------------------------------------- estados
-  function restaurarInterior() {
-    andares.forEach((a) => { a.janelas.visible = true; a.molduras.visible = true; });
-    camera.near = 1;
-    camera.far = 3000;
-    camera.updateProjectionMatrix();
-    invalidar();
-  }
 
+  // ----------------------------------------------------------------- estados
   function focar(ref) {
     separar(ref.andarIdx);
     modo = 'quarto';
@@ -549,8 +524,6 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     // Pedir de novo o quarto que ja esta em foco nao refaz o voo: senao mover o
     // mouse dentro do mesmo cartao reiniciava a animacao a cada quadro.
     if (ref === escolhido && modo === 'quarto') return;
-    clearTimeout(tempoFoco);
-    if (modo === 'vista') restaurarInterior();
     const antigo = escolhido;
     escolhido = ref;
     if (antigo) pintar(antigo);
@@ -558,53 +531,10 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     const q = andares[ref.andarIdx].meta[ref.instanceId];
     if (onSelecionar) onSelecionar(q, hotel.tipos[q.tipo]);
     if (opcoes.voar === false) { avisarModo(); return; }
-    // Vindo da lista HTML por hover ou foco, um respiro antes de voar: passar
-    // o mouse de raspao pela lista nao dispara quatro voos seguidos.
-    if (opcoes.atraso) tempoFoco = setTimeout(() => { if (escolhido === ref) focar(ref); }, opcoes.atraso);
-    else focar(ref);
-  }
-
-  // Camera dentro do quarto olhando para fora. De dentro, a propria janela e a
-  // esquadria sao caixas opacas bem na frente do olho: ficam invisiveis
-  // enquanto estamos la dentro. As paredes do andar somem sozinhas, porque o
-  // material e FrontSide e a camera esta dentro da caixa.
-  function verVista() {
-    if (!escolhido || modo === 'vista') return;
-    clearTimeout(tempoFoco);
-    const a = andares[escolhido.andarIdx];
-    const p = pontoDaJanela(escolhido);
-    const n = normalDaJanela(escolhido);
-    const olho = p.clone().addScaledVector(n, -RECUO_OLHO).add(new THREE.Vector3(0, 0.12, 0));
-    const mira = p.clone().addScaledVector(n, ALCANCE_VISTA);
-    a.janelas.visible = false;
-    a.molduras.visible = false;
-    camera.near = 0.1;
-    camera.far = 500;
-    camera.updateProjectionMatrix();
-    modo = 'vista';
-    avisarModo();
-    // Reta, nao esferica: entrar pela janela e um avanco curto. Em esfericas o
-    // alvo passa para o outro lado da camera no meio do caminho e o raio chega
-    // a zero, o que viraria um arco de 180 graus em volta do ponto de mira.
-    voar({ alvoFim: mira, posFim: olho, reto: true, fim: () => limitesVista(olho, mira) });
-  }
-
-  function voltarDaVista() {
-    if (modo !== 'vista' || !escolhido) return;
-    const ref = escolhido;
-    const pose = poseQuarto(ref);
-    modo = 'quarto';
-    avisarModo();
-    voar({
-      ...pose,
-      reto: true,
-      fim: () => { restaurarInterior(); limitesQuarto(); },
-    });
+    focar(ref);
   }
 
   function verGeral() {
-    clearTimeout(tempoFoco);
-    restaurarInterior();
     const antigo = escolhido;
     escolhido = null;
     if (antigo) pintar(antigo);
@@ -621,8 +551,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   document.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Escape' || modo === 'geral') return;
     ev.preventDefault();
-    if (modo === 'vista') voltarDaVista();
-    else verGeral();
+    verGeral();
   });
 
   // Onde a janela escolhida cai na tela, para a ficha sair de dentro do predio
@@ -681,7 +610,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   avisarModo();
   tick();
-  return { hotel, selecionar, invalidar, verVista, voltarDaVista, verGeral, modo: () => modo };
+  return { hotel, selecionar, invalidar, verGeral, modo: () => modo };
 }
 
 function ceuEntardecer() {

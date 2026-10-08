@@ -50,8 +50,8 @@
   };
 
   var VIEWS = {
-    porta:  { az: 0.0,   pol: 1.15, dist: 1.0,  nome: 'Vista da porta' },
-    janela: { az: Math.PI, pol: 1.15, dist: 1.0, nome: 'Vista da janela' },
+    porta:  { az: 0.35,  pol: 0.78, dist: 1.25, nome: 'Vista da porta' },
+    janela: { az: Math.PI - 0.35, pol: 0.78, dist: 1.25, nome: 'Vista da janela' },
     planta: { az: 0.0,   pol: 0.12, dist: 1.05, nome: 'Vista de cima, planta do quarto' }
   };
 
@@ -78,6 +78,8 @@
       return null;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    // Sem isto as texturas saem lavadas: o padrao do r128 e espaco linear.
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
@@ -90,11 +92,51 @@
     fill.position.set(-3, 2, -2);
     scene.add(fill);
 
+    // Texturas geradas na maquina com padding circular nos dois eixos: casam
+    // consigo mesmas, entao repetem em grade sem emenda visivel.
+    //
+    // O repeat de uma textura e em UV, que vai de 0 a 1 em cada face, entao um
+    // valor fixo daria tamanho real diferente em cada caixa. Cada combinacao de
+    // material e medida ganha a sua textura, com o repeat derivado dos metros.
+    // Uma textura por escala, nao um clone: o clone copia a referencia de
+    // imagem no momento em que e feito, e feito antes do download ele fica sem
+    // imagem para sempre. Carregar de novo nao custa rede, porque o navegador
+    // serve o mesmo arquivo do cache.
+    var carregador = new THREE.TextureLoader();
+    var ARQUIVO = {
+      piso: 'tex-piso-madeira.jpg', parede: 'tex-parede.jpg', azulejo: 'tex-azulejo.jpg',
+      movel: 'tex-madeira-movel.jpg'
+    };
+    // Metros que uma repeticao da textura ocupa na superficie.
+    var METROS = { piso: 1.2, parede: 1.6, azulejo: 0.35, movel: 0.8 };
+    var variantes = {};
+
+    function comEscala(nome, u, v) {
+      var passo = METROS[nome];
+      if (!passo) { return M[nome]; }
+      var ru = Math.max(1, Math.round(u / passo)), rv = Math.max(1, Math.round(v / passo));
+      var chave = nome + ru + 'x' + rv;
+      if (!variantes[chave]) {
+        var t = carregador.load('assets/' + ARQUIVO[nome], function () { needs = true; });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(ru, rv);
+        t.encoding = THREE.sRGBEncoding;
+        t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        var m = M[nome].clone();
+        m.map = t;
+        variantes[chave] = m;
+      }
+      return variantes[chave];
+    }
+
+    // A cor de cada material multiplica a imagem: branco deixa a textura falar,
+    // e enquanto ela nao chega a superficie aparece nessa cor em vez de preta.
     var M = {
-      piso:     new THREE.MeshStandardMaterial({ color: 0xcdb391, roughness: 0.9, metalness: 0 }),
+      piso:     new THREE.MeshStandardMaterial({ color: 0xd8c3a2, roughness: 0.82, metalness: 0 }),
       parede:   new THREE.MeshStandardMaterial({ color: 0xf2ece0, roughness: 0.95, metalness: 0 }),
-      movel:    new THREE.MeshStandardMaterial({ color: 0x6f5636, roughness: 0.65, metalness: 0.05 }),
-      colchao:  new THREE.MeshStandardMaterial({ color: 0xfaf7f1, roughness: 0.85, metalness: 0 }),
+      azulejo:  new THREE.MeshStandardMaterial({ color: 0xf4f6f6, roughness: 0.4, metalness: 0 }),
+      movel:    new THREE.MeshStandardMaterial({ color: 0xa98a60, roughness: 0.6, metalness: 0.05 }),
+      colchao:  new THREE.MeshStandardMaterial({ color: 0xfaf7f1, roughness: 0.88, metalness: 0 }),
       destaque: new THREE.MeshStandardMaterial({ color: 0x906615, roughness: 0.5, metalness: 0.25 }),
       vidro:    new THREE.MeshStandardMaterial({ color: 0xbcd4e0, roughness: 0.2, metalness: 0.1,
                                                  transparent: true, opacity: 0.55 }),
@@ -107,42 +149,47 @@
     var W = plan.w, D = plan.d, H = plan.h, T = 0.1;
 
     function box(w, h, d, mat, x, y, z) {
+      if (typeof mat === 'string') {
+        var dims = [w, h, d], menor = Math.min(w, h, d);
+        var face = dims.filter(function (n, i) { return i !== dims.indexOf(menor); });
+        mat = comEscala(mat, face[0], face[1]);
+      }
       var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
       m.position.set(x, y, z);
       room.add(m);
       return m;
     }
 
-    box(W, T, D, M.piso, 0, -T / 2, 0);
-    box(W, H, T, M.parede, 0, H / 2, -D / 2);          // parede do fundo, com a janela
-    box(T, H, D, M.parede, -W / 2, H / 2, 0);          // parede esquerda
-    box(T, H, D, M.parede, W / 2, H / 2, 0);           // parede direita
+    box(W, T, D, 'piso', 0, -T / 2, 0);
+    box(W, H, T, 'parede', 0, H / 2, -D / 2);          // parede do fundo, com a janela
+    box(T, H, D, 'parede', -W / 2, H / 2, 0);          // parede esquerda
+    box(T, H, D, 'parede', W / 2, H / 2, 0);           // parede direita
 
     // janela na parede do fundo
     box(Math.min(1.8, W * 0.55), 1.2, 0.04, M.vidro, 0, 1.35, -D / 2 + 0.07);
     box(Math.min(1.9, W * 0.6), 0.08, 0.1, M.destaque, 0, 0.72, -D / 2 + 0.08);
 
     // vao da porta na parede da frente, indicado por duas colunas
-    box(T, H, T, M.parede, -W / 2 + 0.35, H / 2, D / 2);
-    box(T, H, T, M.parede, W / 2 - 0.35, H / 2, D / 2);
+    box(T, H, T, 'parede', -W / 2 + 0.35, H / 2, D / 2);
+    box(T, H, T, 'parede', W / 2 - 0.35, H / 2, D / 2);
     box(W - 1.6, 0.12, T, M.destaque, 0, H - 0.06, D / 2);
 
     plan.itens.forEach(function (it) {
       if (it.t === 'banheiro') {
-        box(it.w, it.h, T, M.parede, it.x, it.h / 2, it.z - it.d / 2);
-        box(T, it.h, it.d, M.parede, it.x - it.w / 2, it.h / 2, it.z);
-        box(it.w, 0.1, it.d, M.piso, it.x, 0.05, it.z);
-        box(0.5, 0.85, 0.4, M.colchao, it.x + it.w / 2 - 0.45, 0.42, it.z);
+        box(it.w, it.h, T, 'azulejo', it.x, it.h / 2, it.z - it.d / 2);
+        box(T, it.h, it.d, 'azulejo', it.x - it.w / 2, it.h / 2, it.z);
+        box(it.w, 0.1, it.d, 'azulejo', it.x, 0.05, it.z);
+        box(0.5, 0.85, 0.4, 'colchao', it.x + it.w / 2 - 0.45, 0.42, it.z);
         return;
       }
       if (it.t === 'cama' || it.t === 'solteiro') {
-        box(it.w, 0.3, it.d, M.movel, it.x, 0.15, it.z);
-        box(it.w - 0.08, 0.22, it.d - 0.08, M.colchao, it.x, 0.41, it.z);
-        box(it.w, 0.65, 0.1, M.movel, it.x, 0.5, it.z - it.d / 2);
+        box(it.w, 0.3, it.d, 'movel', it.x, 0.15, it.z);
+        box(it.w - 0.08, 0.22, it.d - 0.08, 'colchao', it.x, 0.41, it.z);
+        box(it.w, 0.65, 0.1, 'movel', it.x, 0.5, it.z - it.d / 2);
         box(it.w * 0.8, 0.1, 0.4, M.destaque, it.x, 0.54, it.z - it.d / 2 + 0.3);
         return;
       }
-      box(it.w, it.h, it.d, M.movel, it.x, it.h / 2, it.z);
+      box(it.w, it.h, it.d, 'movel', it.x, it.h / 2, it.z);
       if (it.t === 'mesa') { box(it.w * 0.9, 0.05, it.d * 0.9, M.destaque, it.x, it.h, it.z); }
     });
 
@@ -242,7 +289,7 @@
         if (k === 'mais') { state.dist = Math.max(0.6, state.dist - 0.15); }
         if (k === 'menos') { state.dist = Math.min(1.6, state.dist + 0.15); }
         apply();
-        if (status) { status.textContent = k === 'mais' ? 'Aproximou.' : k === 'menos' ? 'Afastou.' : 'Girou a maquete.'; }
+        if (status) { status.textContent = k === 'mais' ? 'Aproximou.' : k === 'menos' ? 'Afastou.' : 'Girou a planta.'; }
       });
     });
 
@@ -275,27 +322,27 @@
 
     btn.addEventListener('click', function () {
       btn.disabled = true;
-      btn.textContent = 'Carregando a maquete';
+      btn.textContent = 'Carregando a planta';
       loadThree().then(function () {
         root.setAttribute('data-ready', 'true');
         var ok = build(root, canvas, plan, status);
         if (!ok) {
           root.removeAttribute('data-ready');
           if (fallback) { fallback.hidden = false; }
-          btn.textContent = 'Maquete indisponível neste navegador';
+          btn.textContent = 'Planta indisponível neste navegador';
           return;
         }
         btn.hidden = true;
       }).catch(function () {
         if (fallback) { fallback.hidden = false; }
         btn.disabled = false;
-        btn.textContent = 'Não foi possível carregar a maquete';
+        btn.textContent = 'Não foi possível carregar a planta';
       });
     });
 
     // Sem movimento: a maquete so abre a pedido, e abre parada na vista da porta.
     if (reduced && status) {
-      status.textContent = 'Movimento reduzido ativo. A maquete abre parada.';
+      status.textContent = 'Movimento reduzido ativo. A planta abre parada.';
     }
   }
 
