@@ -11,6 +11,11 @@
 //   atributo instanceColor nem existe no shader.
 // - computeBoundingSphere depois de setMatrixAt, senao o clique erra o alvo.
 // - Render sob demanda e shadowMap.autoUpdate = false.
+//
+// M2, tres estados de camera:
+//   geral  -> predio inteiro, orbita livre, todos os andares solidos
+//   quarto -> andares afastados, so o escolhido solido, camera perto da janela
+//   vista  -> camera dentro do quarto, olhando para fora pela janela
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -23,7 +28,27 @@ const COR = {
   escolhido: 0xffffff,
 };
 
-export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) {
+const DUR = 800;            // duracao padrao das transicoes, em ms
+const SEP = 1.5;            // afastamento em pes-direitos por andar de distancia
+const OPACIDADE_FANTASMA = 0.3;
+const DIST_ORBITA = 58;     // distancia da camera a janela no modo quarto. A 26 m via-se a janela e nada
+                            // da pilha aberta, que e justamente o que o modo tem de melhor
+                            // o bastante para ler a janela, longe o bastante para
+                            // o afastamento dos andares aparecer
+const RECUO_OLHO = 1.6;     // quanto a camera entra no quarto no modo vista
+const ALCANCE_VISTA = 11;   // alvo a frente da janela no modo vista
+const CIMA = new THREE.Vector3(0, 1, 0);
+
+const semMovimento = () =>
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// easeInOutCubic, sem biblioteca de animacao
+const suave = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+// menor caminho angular, para o giro nao dar a volta longa
+const curto = (d) => THREE.MathUtils.euclideanModulo(d + Math.PI, Math.PI * 2) - Math.PI;
+
+export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, onModo }) {
   const hotel = await fetch('data/hotel.json').then((r) => r.json());
   const D = hotel.dimensoes;
   const porFachada = hotel.quartosPorFachada;
@@ -79,6 +104,31 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
     chao: new THREE.MeshStandardMaterial({ color: 0x6f6454, roughness: 0.95 }),
   };
 
+  // Andar fora de foco vira fantasma APAGADO E OPACO, nao translucido.
+  // A primeira versao usava alphaHash, que e a tecnica recomendada quando se
+  // quer mesmo ver atraves: mantem o material na fila de opacos e resolve a
+  // ordenacao por construcao. So que o hash descarta fragmentos sem escurecer
+  // os que ficam, e concreto ao sol pontilhado sobre ceu escuro vira chuvisco
+  // de televisao. Como aqui o objetivo e so tirar o andar do primeiro plano, e
+  // nao enxergar atraves dele, apagar resolve melhor: sem dither, sem custo de
+  // ordenacao e sem precisar de antialiasing temporal.
+  const clonarFantasma = (mat, hex) => {
+    const m = mat.clone();
+    m.color.setHex(hex);
+    m.roughness = 1;
+    m.metalness = 0;
+    if (m.emissive) m.emissive.setHex(0x000000);
+    return m;
+  };
+  const F = {
+    concreto: clonarFantasma(M.concreto, 0x3a3b45),
+    faixa: clonarFantasma(M.faixa, 0x323239),
+    esquadria: clonarFantasma(M.esquadria, 0x24232a),
+    // MeshBasicMaterial multiplica a cor do material pela cor da instancia:
+    // esta serve de atenuador das janelas acesas do andar fora de foco.
+    janela: clonarFantasma(M.janela, 0x6f6e78),
+  };
+
   const predio = new THREE.Group();
   predio.rotation.y = THREE.MathUtils.degToRad(hotel.rotacaoGraus);
   scene.add(predio);
@@ -110,7 +160,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
 
   hotel.andares.forEach((andar, ai) => {
     const grupo = new THREE.Group();
-    grupo.position.y = D.terreo + ai * D.peDireito;
+    const baseY = D.terreo + ai * D.peDireito;
+    grupo.position.y = baseY;
     predio.add(grupo);
 
     const corpo = new THREE.Mesh(new THREE.BoxGeometry(largura, D.peDireito - 0.34, prof), M.concreto);
@@ -154,11 +205,12 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
     molduras.computeBoundingSphere();
     grupo.add(molduras, janelas);
 
-    andares.push({ grupo, janelas, meta, locais });
+    andares.push({ grupo, corpo, faixa, molduras, janelas, meta, locais, baseY, alvoY: baseY, fantasma: false });
   });
 
   const topo = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.7, 0.8, prof + 0.7), M.faixa);
-  topo.position.y = alturaTotal + 0.4;
+  const topoBase = alturaTotal + 0.4;
+  topo.position.y = topoBase;
   topo.castShadow = true;
   predio.add(topo);
 
@@ -182,12 +234,43 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.enablePan = false;
-  controls.minDistance = esfera.radius * 0.9;
-  controls.maxDistance = esfera.radius * 4.2;
-  controls.minPolarAngle = 0.35;
-  controls.maxPolarAngle = Math.PI / 2 - 0.05;
   controls.touches = {}; // o toque e nosso: OrbitControls poe touch-action none
   canvas.style.touchAction = 'pan-y';
+
+  function limitesGerais() {
+    controls.minDistance = esfera.radius * 0.9;
+    controls.maxDistance = esfera.radius * 4.2;
+    controls.minPolarAngle = 0.35;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.minAzimuthAngle = -Infinity;
+    controls.maxAzimuthAngle = Infinity;
+    controls.enableZoom = true;
+    controls.enablePan = false;
+  }
+  function limitesQuarto() {
+    controls.minDistance = 3;
+    controls.maxDistance = esfera.radius * 3.4;
+    controls.minPolarAngle = 0.2;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.minAzimuthAngle = -Infinity;
+    controls.maxAzimuthAngle = Infinity;
+    controls.enableZoom = true;
+    controls.enablePan = false;
+  }
+  // "Olhar ao redor pela janela" sem escrever controlador de primeira pessoa:
+  // o alvo vai para um ponto la fora, a distancia fica travada e os angulos
+  // limitados. O OrbitControls continua o mesmo, so que preso.
+  function limitesVista(olho, mira) {
+    const s = new THREE.Spherical().setFromVector3(olho.clone().sub(mira));
+    controls.minDistance = controls.maxDistance = s.radius;
+    controls.minAzimuthAngle = s.theta - 0.5;
+    controls.maxAzimuthAngle = s.theta + 0.5;
+    controls.minPolarAngle = Math.max(0.08, s.phi - 0.3);
+    controls.maxPolarAngle = Math.min(Math.PI - 0.08, s.phi + 0.3);
+    controls.enableZoom = false; // distancia travada: deixa a roda rolar a pagina
+    controls.enablePan = false;
+  }
+  limitesGerais();
   controls.update();
 
   let precisa = true;
@@ -196,12 +279,163 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
   controls.addEventListener('change', invalidar);
   controls.addEventListener('start', () => { mexeu = true; });
 
+  // ---------------------------------------------------------------- animacao
+  // Sem biblioteca: performance.now, easeInOutCubic, e um passo por frame no
+  // mesmo tick do render sob demanda. Cada animacao tem chave: comecar uma nova
+  // com a mesma chave substitui a anterior.
+  const animacoes = new Map();
+  function animar(chave, duracao, passo, fim) {
+    animacoes.delete(chave);
+    if (!(duracao > 0)) {
+      passo(1);
+      if (fim) fim();
+      invalidar();
+      return;
+    }
+    animacoes.set(chave, { t0: performance.now(), dur: duracao, passo, fim });
+    invalidar();
+  }
+  function passarAnimacoes(agora) {
+    for (const [chave, a] of [...animacoes]) {
+      const bruto = Math.min((agora - a.t0) / a.dur, 1);
+      a.passo(suave(bruto));
+      if (bruto >= 1 && animacoes.get(chave) === a) {
+        animacoes.delete(chave);
+        if (a.fim) a.fim();
+      }
+    }
+    invalidar(); // render sob demanda: cada frame de animacao pede o seu
+  }
+  const duracaoDe = (d) => (semMovimento() ? 0 : (d === undefined ? DUR : d));
+
+  // Voo de camera. Em esfericas (radius, phi, theta) em torno de um alvo que
+  // tambem e interpolado: lerp linear entre posicoes atravessa o predio.
+  // controls.enabled fica false durante o voo e so volta no fim, nesta ordem:
+  // alvo, limites, update, religar. Escrever camera.position com o controls
+  // ativo no mesmo frame e o que faz a camera pular de volta.
+  const alvoAgora = new THREE.Vector3();
+  const sAgora = new THREE.Spherical();
+  const deslocamento = new THREE.Vector3();
+  function voar({ alvoFim, posFim, reto = false, duracao, fim }) {
+    controls.enabled = false;
+    // O ponteiro nao acompanha o voo: o balao que estava sob o cursor ficaria
+    // parado no meio da tela apontando para uma janela que saiu de baixo dele.
+    pendente = null;
+    aplicarHover(null, null);
+    const alvoIni = controls.target.clone();
+    const posIni = camera.position.clone();
+    const s0 = new THREE.Spherical().setFromVector3(posIni.clone().sub(alvoIni));
+    const s1 = new THREE.Spherical().setFromVector3(posFim.clone().sub(alvoFim));
+    s1.theta = s0.theta + curto(s1.theta - s0.theta);
+    animar('camera', duracaoDe(duracao), (t) => {
+      alvoAgora.lerpVectors(alvoIni, alvoFim, t);
+      if (reto) {
+        camera.position.lerpVectors(posIni, posFim, t);
+      } else {
+        sAgora.set(
+          THREE.MathUtils.lerp(s0.radius, s1.radius, t),
+          THREE.MathUtils.lerp(s0.phi, s1.phi, t),
+          THREE.MathUtils.lerp(s0.theta, s1.theta, t));
+        sAgora.makeSafe();
+        camera.position.copy(alvoAgora).add(deslocamento.setFromSpherical(sAgora));
+      }
+      camera.lookAt(alvoAgora);
+    }, () => {
+      camera.position.copy(posFim);
+      controls.target.copy(alvoFim);
+      if (fim) fim();
+      controls.update();
+      controls.enabled = true;
+      invalidar();
+    });
+  }
+
+  // ------------------------------------------------------- andares e fantasma
+  function definirFantasma(a, ligar) {
+    if (a.fantasma === ligar) return;
+    a.fantasma = ligar;
+    a.corpo.material = ligar ? F.concreto : M.concreto;
+    a.faixa.material = ligar ? F.faixa : M.faixa;
+    a.molduras.material = ligar ? F.esquadria : M.esquadria;
+    a.janelas.material = ligar ? F.janela : M.janela;
+    a.corpo.castShadow = a.faixa.castShadow = a.molduras.castShadow = !ligar;
+  }
+
+  // Afastamento de SEP pes-direitos por andar de distancia do escolhido. O
+  // conjunto e reancorado no terreo depois, senao os andares abaixo do foco
+  // afundariam no chao.
+  function alvosDeAndar(foco) {
+    const bruto = andares.map((a, i) => a.baseY + (foco === null ? 0 : (i - foco) * D.peDireito * SEP));
+    const desvio = Math.max(0, D.terreo - Math.min(...bruto));
+    return bruto.map((y) => y + desvio);
+  }
+
+  // A caixa de sombra e dimensionada para o predio fechado; aberto ele fica bem
+  // mais alto e sairia do frustum do sol.
+  function ajustarSombra(aberto) {
+    const r = aberto ? raio * 2.2 : raio;
+    Object.assign(sol.shadow.camera, { left: -r, right: r, top: r, bottom: -r, far: r * 8 });
+    sol.shadow.camera.updateProjectionMatrix();
+    renderer.shadowMap.needsUpdate = true;
+  }
+
+  function separar(foco, duracao) {
+    const destino = alvosDeAndar(foco);
+    const inicio = andares.map((a) => a.grupo.position.y);
+    const topoIni = topo.position.y;
+    const topoFim = destino[destino.length - 1] + D.peDireito + 0.4;
+    andares.forEach((a, i) => {
+      a.alvoY = destino[i];
+      definirFantasma(a, foco !== null && i !== foco);
+    });
+    ajustarSombra(foco !== null);
+    animar('andares', duracaoDe(duracao), (t) => {
+      for (let i = 0; i < andares.length; i++) {
+        andares[i].grupo.position.y = inicio[i] + (destino[i] - inicio[i]) * t;
+      }
+      topo.position.y = topoIni + (topoFim - topoIni) * t;
+    }, () => {
+      renderer.shadowMap.needsUpdate = true;
+    });
+  }
+
+  // Posicao da janela ja no lugar de DESTINO do andar, nao no atual: a camera
+  // precisa mirar onde o andar vai parar, nao onde ele esta no meio do caminho.
+  const vTmp = new THREE.Vector3();
+  function pontoDaJanela(ref) {
+    const a = andares[ref.andarIdx];
+    vTmp.copy(a.locais[ref.instanceId]);
+    vTmp.y += a.alvoY;
+    predio.updateWorldMatrix(true, false);
+    return predio.localToWorld(vTmp.clone());
+  }
+  function normalDaJanela(ref) {
+    const q = andares[ref.andarIdx].meta[ref.instanceId];
+    return new THREE.Vector3(0, 0, q.fachada === 'S' ? 1 : -1)
+      .applyQuaternion(predio.quaternion).normalize();
+  }
+  function poseQuarto(ref) {
+    const p = pontoDaJanela(ref);
+    const n = normalDaJanela(ref);
+    const lado = new THREE.Vector3().crossVectors(n, CIMA).normalize();
+    const dir = n.clone().addScaledVector(lado, 0.3).addScaledVector(CIMA, 0.2).normalize();
+    // Em tela estreita a ficha ocupa a faixa de baixo da cena, entao a mira
+    // desce um pouco e a janela sobe na tela, para fora de tras dela.
+    const alvoFim = p.clone();
+    if (camera.aspect < 1.1) alvoFim.y -= DIST_ORBITA * 0.1;
+    return { alvoFim, posFim: p.clone().addScaledVector(dir, DIST_ORBITA) };
+  }
+
+  // ------------------------------------------------------------ interatividade
   const raycaster = new THREE.Raycaster();
   const ponteiro = new THREE.Vector2();
   const projetado = new THREE.Vector3();
   let hover = null, escolhido = null, pendente = null;
+  let modo = 'geral';
+  let tempoFoco = 0;
 
   const mesmo = (a, b) => a && b && a.andarIdx === b.andarIdx && a.instanceId === b.instanceId;
+  const avisarModo = () => { if (onModo) onModo(modo, escolhido ? andares[escolhido.andarIdx].meta[escolhido.instanceId] : null); };
 
   function pintar(ref) {
     const a = andares[ref.andarIdx];
@@ -214,11 +448,13 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
   }
 
   function achar(ev) {
+    if (modo === 'vista') return null;
     const r = canvas.getBoundingClientRect();
     ponteiro.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
     ponteiro.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
     raycaster.setFromCamera(ponteiro, camera);
     for (const [ai, a] of andares.entries()) {
+      if (a.fantasma) continue; // andar fora de foco nao recebe clique
       const hit = raycaster.intersectObject(a.janelas, false);
       if (hit.length && hit[0].instanceId !== undefined) {
         return { andarIdx: ai, instanceId: hit[0].instanceId };
@@ -257,16 +493,100 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
     if (ref) selecionar(andares[ref.andarIdx].meta[ref.instanceId].numero);
   });
 
-  function selecionar(numero) {
+  // ----------------------------------------------------------------- estados
+  function restaurarInterior() {
+    andares.forEach((a) => { a.janelas.visible = true; a.molduras.visible = true; });
+    camera.near = 1;
+    camera.far = 3000;
+    camera.updateProjectionMatrix();
+    invalidar();
+  }
+
+  function focar(ref) {
+    separar(ref.andarIdx);
+    modo = 'quarto';
+    avisarModo();
+    voar({ ...poseQuarto(ref), fim: limitesQuarto });
+  }
+
+  function selecionar(numero, opcoes = {}) {
     const ref = porQuarto.get(numero);
     if (!ref) return;
+    clearTimeout(tempoFoco);
+    if (modo === 'vista') restaurarInterior();
     const antigo = escolhido;
     escolhido = ref;
     if (antigo) pintar(antigo);
     pintar(escolhido);
     const q = andares[ref.andarIdx].meta[ref.instanceId];
     if (onSelecionar) onSelecionar(q, hotel.tipos[q.tipo]);
+    if (opcoes.voar === false) { avisarModo(); return; }
+    // Vindo da lista HTML por hover ou foco, um respiro antes de voar: passar
+    // o mouse de raspao pela lista nao dispara quatro voos seguidos.
+    if (opcoes.atraso) tempoFoco = setTimeout(() => { if (escolhido === ref) focar(ref); }, opcoes.atraso);
+    else focar(ref);
   }
+
+  // Camera dentro do quarto olhando para fora. De dentro, a propria janela e a
+  // esquadria sao caixas opacas bem na frente do olho: ficam invisiveis
+  // enquanto estamos la dentro. As paredes do andar somem sozinhas, porque o
+  // material e FrontSide e a camera esta dentro da caixa.
+  function verVista() {
+    if (!escolhido || modo === 'vista') return;
+    clearTimeout(tempoFoco);
+    const a = andares[escolhido.andarIdx];
+    const p = pontoDaJanela(escolhido);
+    const n = normalDaJanela(escolhido);
+    const olho = p.clone().addScaledVector(n, -RECUO_OLHO).add(new THREE.Vector3(0, 0.12, 0));
+    const mira = p.clone().addScaledVector(n, ALCANCE_VISTA);
+    a.janelas.visible = false;
+    a.molduras.visible = false;
+    camera.near = 0.1;
+    camera.far = 500;
+    camera.updateProjectionMatrix();
+    modo = 'vista';
+    avisarModo();
+    // Reta, nao esferica: entrar pela janela e um avanco curto. Em esfericas o
+    // alvo passa para o outro lado da camera no meio do caminho e o raio chega
+    // a zero, o que viraria um arco de 180 graus em volta do ponto de mira.
+    voar({ alvoFim: mira, posFim: olho, reto: true, fim: () => limitesVista(olho, mira) });
+  }
+
+  function voltarDaVista() {
+    if (modo !== 'vista' || !escolhido) return;
+    const ref = escolhido;
+    const pose = poseQuarto(ref);
+    modo = 'quarto';
+    avisarModo();
+    voar({
+      ...pose,
+      reto: true,
+      fim: () => { restaurarInterior(); limitesQuarto(); },
+    });
+  }
+
+  function verGeral() {
+    clearTimeout(tempoFoco);
+    restaurarInterior();
+    const antigo = escolhido;
+    escolhido = null;
+    if (antigo) pintar(antigo);
+    separar(null);
+    modo = 'geral';
+    avisarModo();
+    voar({
+      alvoFim: alvo.clone(),
+      posFim: alvo.clone().addScaledVector(direcao, distanciaParaCaber()),
+      fim: limitesGerais,
+    });
+  }
+
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Escape' || modo === 'geral') return;
+    ev.preventDefault();
+    if (modo === 'vista') voltarDaVista();
+    else verGeral();
+  });
 
   // Onde a janela escolhida cai na tela, para a ficha sair de dentro do predio
   function avisarQuadro() {
@@ -283,26 +603,33 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
       frente: projetado.z < 1,
       largura: r.width,
       altura: r.height,
+      modo,
     });
+  }
+
+  function enquadrar() {
+    camera.position.copy(alvo).addScaledVector(direcao, distanciaParaCaber());
+    controls.target.copy(alvo);
+    controls.update();
   }
 
   let visivel = true;
   function tick() {
     requestAnimationFrame(tick);
     if (!visivel) return;
+    if (animacoes.size) passarAnimacoes(performance.now());
     if (pendente) { aplicarHover(achar(pendente), pendente); pendente = null; }
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (w && h && (canvas.width !== w || canvas.height !== h)) {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      if (!mexeu) {
-        camera.position.copy(alvo).addScaledVector(direcao, distanciaParaCaber());
-        controls.update();
-      }
+      if (!mexeu && modo === 'geral' && !animacoes.has('camera')) enquadrar();
       precisa = true;
     }
-    if (controls.enableDamping) controls.update();
+    // update() do OrbitControls reescreve camera.position a partir do alvo: no
+    // meio de um voo ele desfaria o frame inteiro.
+    if (!animacoes.has('camera') && controls.enableDamping) controls.update();
     if (!precisa) return;
     precisa = false;
     renderer.render(scene, camera);
@@ -313,8 +640,9 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro }) 
     { threshold: 0 }).observe(canvas);
   document.addEventListener('visibilitychange', () => { visivel = !document.hidden; if (visivel) invalidar(); });
 
+  avisarModo();
   tick();
-  return { hotel, selecionar, invalidar };
+  return { hotel, selecionar, invalidar, verVista, voltarDaVista, verGeral, modo: () => modo };
 }
 
 function ceuEntardecer() {
