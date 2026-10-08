@@ -152,27 +152,96 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // O terreo era MAIS LARGO que a torre, o que da aspecto de bolo. No predio
   // real ele e recuado e escuro, e a torre avanca por cima: a sombra dessa
   // aba e o que diz "predio de rua" antes de qualquer outro detalhe.
-  const RECUO = 1.5;
-  M.base.map = textura('tex-pedra-base.jpg', 2.0, largura - 2 * RECUO, D.terreo);
+  // ------------------------------------------------------------------ terreo
+  // Era uma caixa recuada um metro e meio de cada lado, com um unico retangulo
+  // branco colado na frente. De longe lia como fita cassete: bloco escuro,
+  // etiqueta, e a torre pairando sem encostar em nada. Tres coisas resolvem.
+  // O recuo cai para um palmo, o bastante para a aba marcar sombra sem a torre
+  // ficar em balanco. A curva da ponta desce ate o chao, em vez de parar no
+  // primeiro andar. E a vitrine vira uma fileira de vaos na mesma cadencia das
+  // janelas de cima, que e o que amarra o terreo ao resto do predio.
+  const RECUO = 0.35;
+  const baseL = largura - 2 * RECUO;
+  const baseR = prof / 2 - RECUO;          // meia profundidade, e raio da curva
+  const baseX = baseL / 2;                 // eixo da curva, na ponta da caixa
+
+  M.base.map = textura('tex-pedra-base.jpg', 2.2, baseL, D.terreo);
   M.base.needsUpdate = true;  // sair de sem mapa para com mapa recompila o shader
   const terreo = new THREE.Mesh(
-    new THREE.BoxGeometry(largura - 2 * RECUO, D.terreo, prof - 2 * RECUO), M.base);
+    new THREE.BoxGeometry(baseL, D.terreo, baseR * 2), M.base);
   terreo.position.y = D.terreo / 2;
   terreo.castShadow = terreo.receiveShadow = true;
   predio.add(terreo);
 
-  // Aba da torre sobre o terreo recuado
-  const aba = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.4, 0.5, prof + 0.4), M.faixa);
-  aba.position.y = D.terreo - 0.25;
+  const terreoBaia = new THREE.Mesh(
+    new THREE.CylinderGeometry(baseR, baseR, D.terreo, 28, 1, true, 0, Math.PI), M.base);
+  terreoBaia.position.set(baseX, D.terreo / 2, 0);
+  terreoBaia.castShadow = terreoBaia.receiveShadow = true;
+  predio.add(terreoBaia);
+
+  // Aba entre o terreo e a torre, com a ponta dobrada junto
+  const aba = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.3, 0.35, prof + 0.3), M.faixa);
+  aba.position.y = D.terreo - 0.175;
   aba.castShadow = aba.receiveShadow = true;
   predio.add(aba);
+  const abaBaia = new THREE.Mesh(
+    new THREE.CylinderGeometry((prof + 0.3) / 2, (prof + 0.3) / 2, 0.35, 28, 1, true, 0, Math.PI),
+    M.faixa);
+  abaBaia.position.set((largura + 0.3) / 2, D.terreo - 0.175, 0);
+  abaBaia.castShadow = abaBaia.receiveShadow = true;
+  predio.add(abaBaia);
 
-  // Vitrine acesa do terreo: a recepcao vista da rua
-  const vitrine = new THREE.Mesh(
-    new THREE.BoxGeometry((largura - 2 * RECUO) * 0.8, 2.4, 0.1),
-    new THREE.MeshStandardMaterial({ color: 0xffdcae, emissive: 0xffc98a, emissiveIntensity: 1.6 }));
-  vitrine.position.set(0, D.terreo * 0.48, (prof - 2 * RECUO) / 2 + 0.06);
-  predio.add(vitrine);
+  // Loja e recepcao: um vao por eixo de janela, nas duas fachadas. O vao do
+  // meio da fachada da frente e a entrada, mais alta e mais acesa.
+  const M_VIDRO = new THREE.MeshStandardMaterial({
+    color: 0xffdcae, emissive: 0xffc98a, emissiveIntensity: 1.0, roughness: 0.3 });
+  const M_PORTA = new THREE.MeshStandardMaterial({
+    color: 0xfff0d6, emissive: 0xffd49a, emissiveIntensity: 1.5, roughness: 0.3 });
+  const geoVao = new THREE.BoxGeometry(3.2, 2.7, 0.12);
+  const geoVidro = new THREE.BoxGeometry(2.9, 2.3, 0.1);
+  const geoPorta = new THREE.BoxGeometry(2.9, 3.0, 0.1);
+  const meio = Math.floor(porFachada / 2);
+
+  for (const frente of [true, false]) {
+    const s = frente ? 1 : -1;
+    for (let i = 0; i < porFachada; i += 1) {
+      const x = (i - (porFachada - 1) / 2) * D.larguraPorQuarto;
+      const entrada = frente && i === meio;
+      const altura = entrada ? 3.0 : 2.3;
+      const centro = entrada ? altura / 2 + 0.1 : 1.75;
+
+      // A esquadria fica atras do vidro, pelo mesmo motivo das janelas de
+      // cima: e caixa cheia, nao aro, e na frente apagaria o vao.
+      const vao = new THREE.Mesh(geoVao, M.esquadria);
+      vao.position.set(x, centro, s * (baseR + 0.02));
+      vao.castShadow = true;
+      predio.add(vao);
+
+      const vidro = new THREE.Mesh(entrada ? geoPorta : geoVidro,
+        entrada ? M_PORTA : M_VIDRO);
+      vidro.position.set(x, centro, s * (baseR + 0.07));
+      predio.add(vidro);
+    }
+  }
+
+  // Marquise sobre a entrada
+  const marquise = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.22, 1.5), M.faixa);
+  marquise.position.set((meio - (porFachada - 1) / 2) * D.larguraPorQuarto,
+                        3.45, baseR + 0.75);
+  marquise.castShadow = true;
+  predio.add(marquise);
+
+  // Calcada. Fica fora do grupo do predio porque o enquadramento da camera
+  // mede o grupo: incluindo a calcada, a cena abriria para caber o passeio.
+  const rua = new THREE.Group();
+  rua.rotation.y = predio.rotation.y;
+  scene.add(rua);
+  const calcada = new THREE.Mesh(
+    new THREE.BoxGeometry(largura + 9, 0.14, prof + 9),
+    new THREE.MeshStandardMaterial({ color: 0x5d5547, roughness: 0.95 }));
+  calcada.position.y = 0.07;
+  calcada.receiveShadow = true;
+  rua.add(calcada);
 
   const geoJanela = new THREE.BoxGeometry(2.05, 1.42, 0.1);
   const geoMoldura = new THREE.BoxGeometry(2.34, 1.72, 0.12);
