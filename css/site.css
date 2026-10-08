@@ -566,3 +566,66 @@ body > main > .section:only-child { margin-block: auto; }
   .site-nav[data-open="true"] { display: block; }
   .site-nav ul { flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
 }
+
+/* Painel de hora e filtros, dentro da cena. Fica recolhido atras de um botao
+   porque a cena e a imagem principal do site e nao pode comecar coberta de
+   formulario; quem quiser procurar, abre. Sem JavaScript ele nem aparece: os
+   controles so fazem sentido com o predio de pe. */
+/* A secao do painel nao ocupa altura: serve so de ancora para ele flutuar
+   sobre o canto de baixo da cena, que termina na linha de cima desta secao.
+   Assim o texto dos controles fica fora do orcamento de palavras do heroi,
+   onde seria contado como prosa. */
+.busca-secao { position: relative; height: 0; }
+.busca {
+  position: absolute; z-index: 4;
+  right: var(--gutter); bottom: var(--space-5);
+  display: flex; flex-direction: column-reverse; align-items: flex-end;
+  gap: var(--space-2);
+  max-width: min(22rem, calc(100% - 2 * var(--gutter)));
+}
+.busca__abrir {
+  min-height: 2.75rem; padding: 0 var(--space-4);
+  font: inherit; font-size: var(--step--1); letter-spacing: 0.04em;
+  color: var(--color-bg); background: rgba(8, 12, 26, 0.78);
+  border: 0; border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.busca__abrir:hover { color: #f0c489; }
+.busca__campos {
+  width: min(20rem, 80vw);
+  display: grid; gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(8, 12, 26, 0.82);
+  border-radius: var(--radius-md);
+  color: var(--color-bg);
+  max-height: min(26rem, 52svh); overflow-y: auto;
+}
+.busca__linha { margin: 0; display: grid; gap: var(--space-1); font-size: var(--step--1); }
+.busca__linha label { color: var(--color-rule); letter-spacing: 0.04em; }
+.busca__linha--caixa { grid-template-columns: auto 1fr; align-items: center; gap: var(--space-3); }
+.busca__linha input[type="range"] { width: 100%; accent-color: #f0c489; min-height: 1.75rem; }
+.busca__linha input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: #f0c489; }
+.busca__linha select {
+  font: inherit; font-size: var(--step--1); min-height: 2.25rem;
+  padding: 0 var(--space-2); color: var(--color-text);
+  background: var(--color-bg); border: 0; border-radius: var(--radius-sm);
+}
+.busca__linha output { font-family: var(--font-display); font-size: var(--step-0); }
+.busca__conta { margin: 0; font-size: var(--step--1); color: #f0c489; min-height: 1.4em; }
+@media (max-width: 55.99em) {
+  .busca { right: var(--gutter); left: var(--gutter); align-items: flex-start; max-width: none; }
+  .busca__campos { width: 100%; }
+}
+
+/* Tela baixa, largura de desktop: a 600 px de altura o texto do heroi nao cabe
+   centralizado e encavala no cabecalho. Mesma saida do celular: ancora no topo
+   e reserva a faixa dos chips embaixo. */
+@media (min-width: 56em) and (max-height: 44em) {
+  .cena { height: clamp(28rem, 92svh, 48rem); }
+  .cena__texto {
+    align-content: start;
+    padding-top: calc(var(--altura-header, 0px) + var(--space-4));
+    padding-bottom: 6.5rem;
+  }
+  .cena__texto h1 { font-size: var(--step-3); }
+}

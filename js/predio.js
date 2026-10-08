@@ -18,14 +18,40 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { posicaoDoSol, direcaoDoSol, horasDeSol } from './sol.js';
 
 // Fim de tarde: quarto livre com a luz acesa, ocupado as escuras.
+// A janela e MeshBasicMaterial: a cor da instancia E a luz dela. De dia isso
+// precisa ler como vidro claro, de noite como quarto aceso. Sao duas paletas e
+// a hora decide a mistura; sem isso, mover o sol deixaria o predio de dia com
+// janelas acesas, que e o contrario do que acontece.
 const COR = {
-  disponivel: 0xffc27a,
-  indisponivel: 0x272d35,
+  diaDisponivel: 0xd3e2ee,
+  diaIndisponivel: 0x59636d,
+  noiteDisponivel: 0xffc27a,
+  noiteIndisponivel: 0x272d35,
   hover: 0xfff3dc,
   escolhido: 0xffffff,
 };
+
+// Mistura dois hexadecimais. Em espaco de cor simples, que basta aqui: a
+// diferenca para a mistura correta nao aparece numa janela de dois metros.
+function misturar(a, b, t) {
+  const r = Math.round(((a >> 16) & 255) * (1 - t) + ((b >> 16) & 255) * t);
+  const g = Math.round(((a >> 8) & 255) * (1 - t) + ((b >> 8) & 255) * t);
+  const z = Math.round((a & 255) * (1 - t) + (b & 255) * t);
+  return (r << 16) | (g << 8) | z;
+}
+
+const CEU_NOITE = ['#070b17', '#101a33', '#1b2747', '#2b3354', '#3a3a55', '#2a2535'];
+const CEU_DOURADO = ['#1f3763', '#45548a', '#9a7289', '#e09a63', '#f6c178', '#9e7b5e'];
+const CEU_DIA = ['#1d4f8f', '#3a76b8', '#79a8d4', '#b9d3e6', '#dfe9f0', '#cdd8dd'];
+
+function lerHex(s) { return parseInt(s.slice(1), 16); }
+function paraHex(n) { return '#' + n.toString(16).padStart(6, '0'); }
+function misturarPaleta(a, b, t) {
+  return a.map((cor, i) => paraHex(misturar(lerHex(cor), lerHex(b[i]), t)));
+}
 
 const DUR = 800;            // duracao padrao das transicoes, em ms
 const SEP = 1.5;            // afastamento em pes-direitos por andar de distancia
@@ -75,7 +101,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   renderer.shadowMap.needsUpdate = true;
 
   const scene = new THREE.Scene();
-  scene.background = ceuEntardecer();
+  // o ceu de verdade e montado em aplicarHora, logo abaixo
   scene.fog = new THREE.Fog(0x3a3a55, alturaTotal * 3.5, alturaTotal * 12);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -97,7 +123,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   scene.add(sol, sol.target);
 
   // Ceu anoitecendo por cima, calor do poente refletindo do chao
-  scene.add(new THREE.HemisphereLight(0x3b4877, 0x7a5436, 0.9));
+  const ambiente = new THREE.HemisphereLight(0x3b4877, 0x7a5436, 0.9);
+  scene.add(ambiente);
 
   // Revestimento vem de imagem: o predio real e de tijolo, e cor chapada num
   // bloco deste tamanho le como maquete de papel. Uma textura por escala, nao
@@ -325,6 +352,15 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   tijoloBaia.map = textura('tex-tijolo.jpg', 2.4, Math.PI * BAIA_R, alturaCorpo);
   tijoloBaia.needsUpdate = true;
 
+  // Estado do M3. noite vai de 0, sol alto, a 1, escuro: e ele que decide se a
+  // janela le como vidro ou como quarto aceso. filtro guarda a busca em
+  // andamento; quarto que nao bate fica apagado, nao sumido, para a fachada
+  // continuar inteira e virar mapa de calor da busca.
+  let noite = 1;
+  let filtro = null;
+  const DATA = new Date();
+  const FUSO = -3;
+
   const andares = [];
   const porQuarto = new Map();
 
@@ -388,7 +424,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
       matriz.setPosition(sx, y - 0.95, sz);
       soleiras.setMatrixAt(i, matriz);
       normais.push(new THREE.Vector3(nx, 0, nz));
-      janelas.setColorAt(i, cor.setHex(q.status === 'disponivel' ? COR.disponivel : COR.indisponivel));
+      janelas.setColorAt(i, cor.setHex(corDaJanela(q)));
       meta.push(q);
       locais.push(new THREE.Vector3(jx, y, jz));
       porQuarto.set(q.numero, { andarIdx: ai, instanceId: i });
@@ -453,6 +489,65 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     cx.castShadow = cx.receiveShadow = true;
     predio.add(cx);
   });
+
+  // ------------------------------------------------------------------ hora
+  // Move o sol, troca o ceu, a bruma e a luz de ambiente, e repinta as
+  // janelas. Tudo junto de proposito: sol se mexendo num ceu de anoitecer
+  // parado, ou de dia com as janelas acesas, seria pior do que nao ter hora
+  // nenhuma.
+  const distSol = Math.max(largura, alturaTotal) * 3.2;
+  let ceuAtual = null;
+
+  function repintarTudo() {
+    andares.forEach((a) => {
+      a.meta.forEach((q, i) => {
+        const ref = { andarIdx: andares.indexOf(a), instanceId: i };
+        const base = corDaJanela(q);
+        const hex = mesmo(ref, escolhido) ? COR.escolhido : mesmo(ref, hover) ? COR.hover : base;
+        a.janelas.setColorAt(i, cor.setHex(hex));
+      });
+      a.janelas.instanceColor.needsUpdate = true;
+    });
+    invalidar();
+  }
+
+  function aplicarHora(hora) {
+    const { elevacao, azimute } = posicaoDoSol(hotel.lat, hotel.lng, DATA, hora, FUSO);
+    const d = direcaoDoSol(elevacao, azimute);
+
+    sol.position.set(d.x * distSol, Math.max(d.y, -0.2) * distSol, d.z * distSol);
+    // Abaixo do horizonte a luz direta zera; a de ambiente sustenta a cena.
+    const forca = Math.max(0, Math.min(1, (elevacao + 2) / 16));
+    sol.intensity = 4.2 * forca;
+    sol.color.setHex(misturar(0xff7a3c, 0xfff4e4, Math.min(1, Math.max(0, elevacao / 30))));
+    sol.castShadow = forca > 0.05;
+
+    const ceu = ceuPara(elevacao);
+    if (ceuAtual) ceuAtual.dispose();
+    ceuAtual = ceu.textura;
+    scene.background = ceu.textura;
+    scene.fog.color.setHex(ceu.horizonte);
+    ambiente.color.setHex(ceu.topo);
+    ambiente.groundColor.setHex(misturar(0x3a2e24, 0x8a7a63, forca));
+    ambiente.intensity = 0.55 + 0.6 * forca;
+
+    noite = Math.max(0, Math.min(1, (2 - elevacao) / 10));
+    repintarTudo();
+    renderer.shadowMap.needsUpdate = true;
+  }
+
+  // Faixa de sol direto de cada fachada, para a ficha do quarto dizer de que
+  // horas a que horas aquele quarto pega sol.
+  const giro = THREE.MathUtils.degToRad(hotel.rotacaoGraus);
+  const SOL_FACHADA = {
+    S: horasDeSol(hotel.lat, hotel.lng, DATA, FUSO, { x: Math.sin(giro), z: Math.cos(giro) }),
+    N: horasDeSol(hotel.lat, hotel.lng, DATA, FUSO, { x: -Math.sin(giro), z: -Math.cos(giro) }),
+  };
+
+  function aplicarFiltro(fn) {
+    filtro = fn;
+    repintarTudo();
+  }
 
   sol.target.position.set(0, alturaTotal * 0.45, 0);
   sol.target.updateMatrixWorld();
@@ -703,10 +798,21 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   const mesmo = (a, b) => a && b && a.andarIdx === b.andarIdx && a.instanceId === b.instanceId;
   const avisarModo = () => { if (onModo) onModo(modo, escolhido ? andares[escolhido.andarIdx].meta[escolhido.instanceId] : null); };
 
+  // Cor de uma janela na hora atual, ja considerando o filtro. Apagar quem nao
+  // bate e melhor do que esconder: a fachada continua inteira e o olho le de
+  // uma vez quantos e onde estao os quartos que atendem.
+  function corDaJanela(q) {
+    const dia = q.status === 'disponivel' ? COR.diaDisponivel : COR.diaIndisponivel;
+    const noturna = q.status === 'disponivel' ? COR.noiteDisponivel : COR.noiteIndisponivel;
+    const base = misturar(dia, noturna, noite);
+    if (filtro && !filtro(q)) return misturar(base, 0x1a1d24, 0.8);
+    return base;
+  }
+
   function pintar(ref) {
     const a = andares[ref.andarIdx];
     const q = a.meta[ref.instanceId];
-    const base = q.status === 'disponivel' ? COR.disponivel : COR.indisponivel;
+    const base = corDaJanela(q);
     const hex = mesmo(ref, escolhido) ? COR.escolhido : mesmo(ref, hover) ? COR.hover : base;
     a.janelas.setColorAt(ref.instanceId, cor.setHex(hex));
     a.janelas.instanceColor.needsUpdate = true;
@@ -863,23 +969,35 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   avisarModo();
   tick();
-  return { hotel, selecionar, invalidar, verGeral, modo: () => modo };
+  aplicarHora(18.5);   // entardecer, que e o estado em que a cena foi desenhada
+
+  return { hotel, selecionar, invalidar, verGeral, aplicarHora, aplicarFiltro,
+           solDaFachada: (f) => SOL_FACHADA[f], modo: () => modo };
 }
 
-function ceuEntardecer() {
+// Ceu para uma elevacao do sol. Tres paletas e duas misturas: noite ate o sol
+// a seis graus abaixo do horizonte, dourada em volta do nascer e do por, dia a
+// partir de vinte e cinco graus.
+const PARADAS = [0, 0.32, 0.58, 0.78, 0.92, 1];
+function ceuPara(elevacao) {
+  let paleta;
+  if (elevacao <= -6) {
+    paleta = CEU_NOITE;
+  } else if (elevacao < 5) {
+    paleta = misturarPaleta(CEU_NOITE, CEU_DOURADO, (elevacao + 6) / 11);
+  } else if (elevacao < 25) {
+    paleta = misturarPaleta(CEU_DOURADO, CEU_DIA, (elevacao - 5) / 20);
+  } else {
+    paleta = CEU_DIA;
+  }
   const c = document.createElement('canvas');
   c.width = 2; c.height = 512;
   const ctx = c.getContext('2d');
   const g = ctx.createLinearGradient(0, 0, 0, 512);
-  g.addColorStop(0.00, '#16213f');
-  g.addColorStop(0.32, '#2f3c67');
-  g.addColorStop(0.58, '#7a5f80');
-  g.addColorStop(0.78, '#d4875c');
-  g.addColorStop(0.92, '#f0ad68');
-  g.addColorStop(1.00, '#8a6951');
+  paleta.forEach((cor, i) => g.addColorStop(PARADAS[i], cor));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 2, 512);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
+  return { textura: tex, horizonte: lerHex(paleta[4]), topo: lerHex(paleta[0]) };
 }

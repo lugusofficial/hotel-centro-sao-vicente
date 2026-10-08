@@ -45,6 +45,16 @@ if (root) {
 
   const anunciar = (texto) => { if (status) status.textContent = texto; };
 
+  // De que horas a que horas a fachada daquele quarto pega sol hoje. Vem do
+  // calculo de posicao solar, nao de texto fixo: muda com a data e com a
+  // rotacao do predio no terreno.
+  let apiSol = null;
+  const faixaDeSol = (q) => {
+    const f = apiSol && apiSol.solDaFachada(q.fachada);
+    if (!f) return fr('semSol', 'Pouco sol direto');
+    return fr('faixaSol', 'das {de}h às {ate}h').replace('{de}', f.de).replace('{ate}', f.ate);
+  };
+
   // Numero do quarto em foco, para a troca de andar saber de onde sai.
   let quartoAtual = null;
 
@@ -62,6 +72,73 @@ if (root) {
         api.selecionar(Number(b.dataset.andar) * 100 + (quartoAtual % 100));
       }
     });
+  }
+
+  // Painel de hora e filtros. So existe com o predio de pe: sem JavaScript ou
+  // sem WebGL ele fica oculto, porque formulario que nao muda nada e pior do
+  // que formulario nenhum.
+  function ligarBusca(api) {
+    // Busca no documento, nao em root: o painel e secao irma da cena, para o
+    // texto dos controles nao entrar no orcamento de palavras do heroi.
+    const painel = document.querySelector('[data-busca]');
+    if (!painel) return;
+    const abrir = painel.querySelector('[data-busca-abrir]');
+    const campos = painel.querySelector('#busca-campos');
+    const conta = painel.querySelector('[data-busca-conta]');
+    const hora = painel.querySelector('#f-hora');
+    const saidaHora = painel.querySelector('[data-f-hora]');
+    const vista = painel.querySelector('#f-vista');
+    const andar = painel.querySelector('#f-andar');
+    const preco = painel.querySelector('#f-preco');
+    const saidaPreco = painel.querySelector('[data-f-preco]');
+    const livre = painel.querySelector('#f-livre');
+    painel.hidden = false;
+
+    abrir.addEventListener('click', () => {
+      const aberto = abrir.getAttribute('aria-expanded') === 'true';
+      abrir.setAttribute('aria-expanded', String(!aberto));
+      campos.hidden = aberto;
+    });
+
+    const formatarHora = (h) => {
+      const inteira = Math.floor(h);
+      const min = Math.round((h - inteira) * 60);
+      return min ? `${inteira}h${String(min).padStart(2, '0')}` : `${inteira}h`;
+    };
+
+    // Todos os quartos numa lista so: a contagem roda a cada mexida de
+    // controle e nao vale varrer os sete andares de novo toda vez.
+    const todos = api.hotel.andares.reduce((lista, a) => lista.concat(a.quartos), []);
+
+    function aplicar() {
+      const v = vista.value;
+      const an = andar.value;
+      const teto = Number(preco.value);
+      const soLivre = livre.checked;
+      const nenhum = !v && !an && teto >= Number(preco.max) && !soLivre;
+
+      const bate = (q) => (!v || q.vista === v)
+        && (!an || String(q.numero).slice(0, -2) === an)
+        && q.precoBase <= teto
+        && (!soLivre || q.status === 'disponivel');
+
+      api.aplicarFiltro(nenhum ? null : bate);
+      const n = nenhum ? todos.length : todos.filter(bate).length;
+      conta.textContent = (nenhum
+        ? fr('contaTodos', '{n} quartos na fachada')
+        : fr('contaFiltro', '{n} quartos atendem')).replace('{n}', n);
+    }
+
+    hora.addEventListener('input', () => {
+      saidaHora.textContent = formatarHora(Number(hora.value));
+      api.aplicarHora(Number(hora.value));
+    });
+    preco.addEventListener('input', () => {
+      saidaPreco.textContent = `R$ ${preco.value}`;
+    });
+    [vista, andar, preco, livre].forEach((el) => el.addEventListener('input', aplicar));
+    saidaHora.textContent = formatarHora(Number(hora.value));
+    aplicar();
   }
 
   // Testa num canvas descartavel: pedir o contexto no canvas real faria o
@@ -97,6 +174,7 @@ if (root) {
             <div><dt>${fr('andar', 'Andar')}</dt><dd>${String(q.numero).slice(0, -2)}</dd></div>
             <div><dt>${fr('vista', 'Vista')}</dt><dd>${fr(q.vista === 'mar' ? 'vistaMar' : 'vistaCidade', q.vista)}</dd></div>
             <div><dt>${fr('hospedes', 'Hóspedes')}</dt><dd>${tipo.hosp}</dd></div>
+            <div><dt>${fr('sol', 'Sol direto')}</dt><dd>${faixaDeSol(q)}</dd></div>
           </dl>
           <p class="ficha__estado" data-disp="${disp}">${disp ? fr('disponivel', 'Disponível') : fr('indisponivel', 'Indisponível nas datas')}</p>
           ${linhaAndares(q.numero)}
@@ -120,12 +198,8 @@ if (root) {
           return;
         }
         if (!q) return;
-        if (modo === 'vista') {
-          anunciar(`Vista da janela do quarto ${q.numero}. Use o botão Voltar ao quarto ou a tecla Escape para sair.`);
-        } else {
-          anunciar(fr('emFoco', 'Quarto {numero} em foco, andar {andar}. Os outros andares ficaram transparentes.')
+        anunciar(fr('emFoco', 'Quarto {numero} em foco, andar {andar}. Os outros andares ficaram transparentes.')
           .replace('{numero}', q.numero).replace('{andar}', String(q.numero).slice(0, -2)));
-        }
       },
       // A ficha acompanha a janela escolhida, saindo de dentro do prédio.
       // Em tela estreita o CSS a tira do posicionamento absoluto e isto não atrapalha.
@@ -159,6 +233,8 @@ if (root) {
         // So no clique. Antes a escolha vinha de passar o mouse, e isso disparava
         // um voo em cada chip que o ponteiro cruzasse no caminho ate o que
         // interessava.
+        apiSol = api;
+        ligarBusca(api);
         root.querySelectorAll('a[data-room-link]').forEach((a) => {
           const b = document.createElement('button');
           b.type = 'button';
