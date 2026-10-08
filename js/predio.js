@@ -613,8 +613,17 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.enablePan = false;
-  controls.touches = {}; // o toque e nosso: OrbitControls poe touch-action none
-  canvas.style.touchAction = 'pan-y';
+  // Inline o toque fica desligado: o canvas ocupa quase a tela do celular e
+  // deixar o OrbitControls pegar o gesto sequestraria a rolagem da pagina.
+  // Em tela cheia nao existe pagina para rolar, entao o toque passa a ser
+  // dele, com um dedo girando e dois aproximando.
+  function toqueDoPredio(ligado) {
+    controls.touches = ligado
+      ? { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_ROTATE }
+      : {};
+    canvas.style.touchAction = ligado ? 'none' : 'pan-y';
+  }
+  toqueDoPredio(false);
 
   function limitesGerais() {
     controls.minDistance = esfera.radius * 0.9;
@@ -984,7 +993,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   tick();
   aplicarCeu(ENTARDECER);
 
-  return { hotel, selecionar, invalidar, verGeral, aplicarFiltro,
+  return { hotel, selecionar, invalidar, verGeral, aplicarFiltro, toqueDoPredio,
            solDaFachada: (f) => SOL_FACHADA[f], modo: () => modo };
 }
 

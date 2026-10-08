@@ -17,7 +17,9 @@ if (root) {
   const canvas = root.querySelector('[data-predio-canvas]');
   const tooltip = root.querySelector('[data-predio-tooltip]');
   const ficha = root.querySelector('[data-predio-ficha]');
-  const aviso = root.querySelector('[data-predio-aviso]');
+  // No documento, nao em root: o aviso saiu da secao da cena para o texto
+  // dele nao contar no orcamento de palavras do heroi.
+  const aviso = document.querySelector('[data-predio-aviso]');
   const status = root.querySelector('[data-predio-status]');
 
   let api = null;
@@ -137,8 +139,50 @@ if (root) {
     semWebgl();
   }
 
-  if (!aviso || aviso.hidden) {
-    montarPredio({
+  // No celular o predio nao sobe junto com a pagina: o heroi mostra a foto e um
+  // botao, e o 3D so e montado quando alguem pede. Sao duas razoes somadas.
+  // A biblioteca passa de um mega e e o grosso do peso da pagina, e o canvas
+  // inline ocupa quase a tela toda, de modo que o gesto ou rola a pagina ou
+  // gira o predio: em tela cheia essa disputa deixa de existir.
+  const estreito = matchMedia('(max-width: 55.99em)');
+  const botaoAbrir = root.querySelector('[data-predio-abrir]');
+  const botaoFechar = root.querySelector('[data-predio-fechar]');
+  let montado = false;
+
+  function abrirAmplo() {
+    root.setAttribute('data-amplo', 'true');
+    if (api) api.toqueDoPredio(true);
+    if (botaoFechar) { botaoFechar.hidden = false; botaoFechar.focus(); }
+    anunciar(fr('amploAberto', 'Prédio em tela cheia. Arraste para girar.'));
+  }
+
+  function fecharAmplo() {
+    root.removeAttribute('data-amplo');
+    if (api) api.toqueDoPredio(false);
+    if (botaoFechar) botaoFechar.hidden = true;
+    if (botaoAbrir) botaoAbrir.focus();
+  }
+
+  if (botaoFechar) botaoFechar.addEventListener('click', fecharAmplo);
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && root.getAttribute('data-amplo') === 'true') fecharAmplo();
+  });
+
+  if (botaoAbrir) {
+    botaoAbrir.addEventListener('click', () => {
+      if (!montado) {
+        botaoAbrir.disabled = true;
+        botaoAbrir.textContent = fr('carregandoPredio', 'Carregando o prédio');
+        subir().then(() => { abrirAmplo(); }).catch(semWebgl);
+        return;
+      }
+      abrirAmplo();
+    });
+  }
+
+  function subir() {
+    montado = true;
+    return montarPredio({
       canvas,
       tooltip,
       onSelecionar(q, tipo) {
@@ -212,6 +256,7 @@ if (root) {
       .then((pronto) => {
         api = pronto;
         root.setAttribute('data-pronto', 'true');
+        if (root.getAttribute('data-amplo') === 'true') api.toqueDoPredio(true);
         // Os chips da cena viram botoes agora que o predio esta de pe: eles
         // passam a trocar a selecao na fachada em vez de sair da pagina. Sem
         // JavaScript ou sem WebGL continuam sendo links para a pagina do tipo,
@@ -234,7 +279,9 @@ if (root) {
           b.addEventListener('click', () => api.selecionar(Number(b.dataset.quarto)));
           a.replaceWith(b);
         });
-      })
-      .catch(semWebgl);
+      });
   }
+
+  // No computador sobe de uma vez; no celular espera o toque no botao.
+  if (!estreito.matches) subir().catch(semWebgl);
 }

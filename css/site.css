@@ -635,3 +635,47 @@ body > main > .section:only-child { margin-block: auto; }
   }
   .cena__texto h1 { font-size: var(--step-3); }
 }
+
+/* O predio 3D no celular.
+   No computador ele carrega junto com a pagina e o mouse gira sem conflito.
+   No celular nao dava: o canvas ocupa quase a tela inteira e qualquer gesto
+   dentro dele ou rola a pagina ou gira o predio, nunca os dois, e eu tinha
+   desligado o toque do OrbitControls para nao sequestrar a rolagem, o que na
+   pratica deixou o predio parado. Alem disso a biblioteca pesa mais de um
+   mega, que no celular e o grosso da pagina.
+   Entao no celular o heroi mostra uma foto do predio e um botao; quem toca
+   abre o 3D em tela cheia, onde o gesto e so dele e a rolagem nao existe. */
+.cena__acao { display: none; }
+.cena__fechar { display: none; }
+
+@media (max-width: 55.99em) {
+  .cena { background-image: url("../assets/predio-capa.jpg"); background-size: cover;
+          background-position: center 42%; }
+  .cena__canvas { display: none; }
+  .cena__acao {
+    display: block; position: absolute; z-index: 3;
+    left: var(--gutter); right: var(--gutter); bottom: 5.5rem; margin: 0;
+  }
+  .cena__acao .btn { width: 100%; }
+
+  .cena[data-amplo="true"] {
+    position: fixed; inset: 0; z-index: 80;
+    height: 100svh; margin: 0; background-image: none;
+  }
+  .cena[data-amplo="true"] .cena__canvas { display: block; touch-action: none; }
+  .cena[data-amplo="true"] .cena__texto,
+  .cena[data-amplo="true"] .cena__veu,
+  .cena[data-amplo="true"] .cena__acao { display: none; }
+  .cena[data-amplo="true"] .tipos { bottom: var(--space-4); }
+  .cena[data-amplo="true"] .cena__fechar {
+    display: grid; place-items: center;
+    position: absolute; z-index: 5; top: var(--space-4); right: var(--gutter);
+    width: 2.75rem; height: 2.75rem; padding: 0;
+    font: inherit; font-size: var(--step-1); line-height: 1;
+    color: var(--color-bg); background: rgba(8, 12, 26, 0.8);
+    border: 0; border-radius: var(--radius-pill); cursor: pointer;
+  }
+}
+
+/* Em tela cheia o corpo nao rola por tras do predio. */
+body:has(.cena[data-amplo="true"]) { overflow: hidden; }

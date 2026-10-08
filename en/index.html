@@ -23,12 +23,12 @@
 <link rel="alternate" hreflang="x-default" href="https://lugusofficial.github.io/hotel-centro-sao-vicente/index.html">
 <link rel="stylesheet" href="../css/tokens.css">
 <link rel="stylesheet" href="../css/base.css">
-<link rel="stylesheet" href="../css/site.css?v=5c9c3703">
+<link rel="stylesheet" href="../css/site.css?v=6d110bab">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Hotel", "name": "Sua Marca", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/", "telephone": "+0000000000", "email": "reservas@example.com", "address": {"@type": "PostalAddress", "streetAddress": "Rua Exemplo, 123", "addressLocality": "São Vicente", "addressRegion": "SP", "addressCountry": "BR"}, "numberOfRooms": 98, "checkinTime": "14:00", "checkoutTime": "12:00", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Air conditioning"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi throughout the hotel"}, {"@type": "LocationFeatureSpecification", "name": "Cable TV"}, {"@type": "LocationFeatureSpecification", "name": "Minibar"}, {"@type": "LocationFeatureSpecification", "name": "In-room safe"}, {"@type": "LocationFeatureSpecification", "name": "Private bathroom"}, {"@type": "LocationFeatureSpecification", "name": "Breakfast included"}, {"@type": "LocationFeatureSpecification", "name": "Linen changed daily"}]}</script>
-<script type="application/json" id="i18n">{"quarto": "Room", "diaria": "Rate", "andar": "Floor", "vista": "View", "hospedes": "Guests", "disponivel": "Available", "ocupado": "Occupied", "indisponivel": "Not available on these dates", "trocarAndar": "Change floor", "ver": "See the {tipo}", "predioInteiro": "See the whole building", "semSelecao": "Outside view of the building. No room selected.", "emFoco": "Room {numero} in focus, floor {andar}. The other floors have faded.", "vistaMar": "sea", "vistaCidade": "city", "tipos": {"solteiro": "Single Room", "casal": "Double Room", "superior": "Superior Room", "familia": "Family Room"}, "tourSemWebgl": "Tour unavailable in this browser", "tourFalhou": "The tour could not be loaded", "tourCarregando": "Loading the tour", "tourAberto": "Tour open. Drag to look around, or use the buttons below.", "tourParado": "Reduced motion is on. The tour opens still, at the starting point.", "olhouEsq": "Looked left", "olhouDir": "Looked right", "olhouCima": "Looked up", "olhouBaixo": "Looked down", "olhouInicio": "Back to the starting point", "foto": "Photo {i} of {n}", "sol": "Direct sun", "semSol": "Little direct sun", "faixaSol": "{de}h to {ate}h", "contaTodos": "{n} rooms on the facade", "contaFiltro": "{n} rooms match"}</script>
+<script type="application/json" id="i18n">{"quarto": "Room", "diaria": "Rate", "andar": "Floor", "vista": "View", "hospedes": "Guests", "disponivel": "Available", "ocupado": "Occupied", "indisponivel": "Not available on these dates", "trocarAndar": "Change floor", "ver": "See the {tipo}", "predioInteiro": "See the whole building", "semSelecao": "Outside view of the building. No room selected.", "emFoco": "Room {numero} in focus, floor {andar}. The other floors have faded.", "vistaMar": "sea", "vistaCidade": "city", "tipos": {"solteiro": "Single Room", "casal": "Double Room", "superior": "Superior Room", "familia": "Family Room"}, "tourSemWebgl": "Tour unavailable in this browser", "tourFalhou": "The tour could not be loaded", "tourCarregando": "Loading the tour", "tourAberto": "Tour open. Drag to look around, or use the buttons below.", "tourParado": "Reduced motion is on. The tour opens still, at the starting point.", "olhouEsq": "Looked left", "olhouDir": "Looked right", "olhouCima": "Looked up", "olhouBaixo": "Looked down", "olhouInicio": "Back to the starting point", "foto": "Photo {i} of {n}", "sol": "Direct sun", "semSol": "Little direct sun", "faixaSol": "{de}h to {ate}h", "contaTodos": "{n} rooms on the facade", "contaFiltro": "{n} rooms match", "amploAberto": "Building in full screen. Drag to turn it.", "carregandoPredio": "Loading the building"}</script>
 <script src="../js/main.js" defer></script>
 <script src="../js/app.js?v=cbfe4f37" defer></script>
-<script type="importmap">{"imports":{"three":"../js/vendor/three.module.js","three/addons/":"../js/vendor/","../js/predio.js":"../js/predio.js?v=4fd7d783"}}</script><script type="module" src="../js/predio-init.js?v=d6bd5be6"></script>
+<script type="importmap">{"imports":{"three":"../js/vendor/three.module.js","three/addons/":"../js/vendor/","../js/predio.js":"../js/predio.js?v=be5f13aa"}}</script><script type="module" src="../js/predio-init.js?v=2adcfd3d"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -64,7 +64,13 @@
     <nav class="tipos" aria-label="Choose a room type on the facade">
       <ul><li><a class="tipos__chip" href="quarto-solteiro.html" data-room-link data-pagina="quarto-solteiro.html" data-quarto="401" data-announce="Single Room, 12 square metres, from R$ 150.">Single</a></li><li><a class="tipos__chip" href="quarto-casal.html" data-room-link data-pagina="quarto-casal.html" data-quarto="402" data-announce="Double Room, 18 square metres, from R$ 210.">Double</a></li><li><a class="tipos__chip" href="quarto-superior.html" data-room-link data-pagina="quarto-superior.html" data-quarto="404" data-announce="Superior Room, 24 square metres, from R$ 290.">Superior</a></li><li><a class="tipos__chip" href="quarto-familia.html" data-room-link data-pagina="quarto-familia.html" data-quarto="407" data-announce="Family Room, 28 square metres, from R$ 360.">Family</a></li></ul>
     </nav>
-    <p class="cena__aviso" data-predio-aviso hidden>Without WebGL, the room list below carries the same information.</p>
+    <p class="cena__acao">
+      <button class="btn btn--primary" type="button" data-predio-abrir>See the building in 3D</button>
+    </p>
+    <button class="cena__fechar" type="button" data-predio-fechar hidden>
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg>
+      <span class="visually-hidden">Close the building in 3D</span>
+    </button>
     <p class="visually-hidden" data-predio-status role="status"></p>
   </section>
 
@@ -73,6 +79,7 @@
        contar no orcamento de palavras daquela secao. -->
   <section class="busca-secao" aria-labelledby="busca-title">
     <h2 id="busca-title" class="visually-hidden">Facade filters</h2>
+    <p class="cena__aviso" data-predio-aviso hidden>Without WebGL, the room list below carries the same information.</p>
     <div class="busca" data-busca hidden>
       <button class="busca__abrir" type="button" data-busca-abrir
               aria-expanded="false" aria-controls="busca-campos">Filters</button>
@@ -173,7 +180,7 @@
         <li><span class="label">Address</span> <span class="facts__value">Rua Exemplo, 123, Centro, São Vicente</span></li>
         <li><span class="label">Reception</span> <span class="facts__value">24 hours</span></li>
       </ul>
-      <p><a class="btn btn--primary" href="https://wa.me/0000000000">Talk to bookings</a></p>
+      <p><a class="btn btn--primary" href="https://wa.me/0000000000">Make a booking</a></p>
     </div>
   </section>
 </main>
