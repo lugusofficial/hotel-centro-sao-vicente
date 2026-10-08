@@ -76,9 +76,42 @@
   .cena__texto { align-content: start; padding-top: var(--space-6); }
 }
 
-/* Listagem de quartos */
-.rooms { display: grid; gap: var(--space-7); }
-.rooms__item { max-width: none; display: grid; gap: var(--space-3); }
+/* Listagem de quartos.
+   As linhas sao fixas e o resumo recebe 1fr, entao fatos e preco encostam na
+   base e todos os cartoes alinham, mesmo com resumos de alturas diferentes. */
+.rooms { display: grid; gap: var(--space-7); align-items: stretch; }
+.rooms__item {
+  max-width: none;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: var(--space-3);
+}
+.rooms__resumo { max-width: 34ch; }
+.rooms__fatos {
+  margin: 0;
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.rooms__fatos span { color: var(--color-rule); }
+.rooms__preco {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.1em 0.4em;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-rule);
+}
+.rooms__preco span { font-size: var(--step--1); color: var(--color-muted); }
+.rooms__preco strong {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--step-2);
+  color: var(--color-accent);
+  line-height: 1;
+}
 .rooms__link { text-decoration: none; display: grid; gap: var(--space-3); }
 .rooms__link img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-md); transition: opacity 250ms ease; }
 .rooms__link:hover img { opacity: 0.88; }
