@@ -20,11 +20,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Work+Sans:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/site.css?v=e23c96bc">
+<link rel="stylesheet" href="css/site.css?v=1e8fc6da">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "HotelRoom", "name": "Quarto Superior", "description": "Mais metragem, poltrona de leitura e escrivaninha, para estadias de vários dias.", "occupancy": {"@type": "QuantitativeValue", "maxValue": 2}, "floorSize": {"@type": "QuantitativeValue", "value": 24, "unitCode": "MTK"}, "bed": "Uma cama king e poltrona", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Ar condicionado"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi em todo o hotel"}, {"@type": "LocationFeatureSpecification", "name": "TV por assinatura"}, {"@type": "LocationFeatureSpecification", "name": "Frigobar"}, {"@type": "LocationFeatureSpecification", "name": "Cofre individual"}, {"@type": "LocationFeatureSpecification", "name": "Banheiro privativo"}, {"@type": "LocationFeatureSpecification", "name": "Café da manhã incluso"}, {"@type": "LocationFeatureSpecification", "name": "Enxoval trocado diariamente"}], "offers": {"@type": "Offer", "price": 290, "priceCurrency": "BRL", "availability": "https://schema.org/InStock", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/quarto-superior.html"}}</script>
 <script src="js/main.js" defer></script>
 <script src="js/app.js?v=57f2b8cb" defer></script>
-<script src="js/room3d.js" defer></script>
+<script type="importmap">{"imports":{"three":"./js/vendor/three.module.js","three/addons/":"./js/vendor/"}}</script><script type="module" src="js/tour.js?v=87b456fc"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Pular para o conteúdo</a>
@@ -73,33 +73,33 @@
     </div>
   </section>
 
-  <section class="section section--maquete" aria-labelledby="maquete-title">
+  <section class="section section--tour" aria-labelledby="tour-title">
     <div class="container stack--lg">
       <div class="stack">
-        <h2 id="maquete-title">O quarto em três dimensões</h2>
-        <p class="muted">Planta do espaço. O que ela mostra está escrito ao lado.</p>
+        <h2 id="tour-title">O quarto em 360 graus</h2>
+        <p class="muted">Entre e olhe em volta. Tudo o que o tour mostra está escrito ao lado.</p>
       </div>
-      <div class="maquete" data-maquete>
-        <div class="maquete__stage">
-          <canvas class="maquete__canvas" data-room3d="superior" width="900" height="600" aria-hidden="true"></canvas>
-          <div class="maquete__cover">
+      <div class="tour" data-tour>
+        <div class="tour__palco">
+          <canvas class="tour__canvas" data-tour-canvas data-panorama="360-superior.jpg" data-inicio="30" aria-hidden="true"></canvas>
+          <div class="tour__capa">
             <img src="assets/superior-1.jpg" alt="" width="1216" height="832" loading="lazy">
-            <button class="btn btn--primary maquete__start" type="button" data-room3d-start>Ver a planta em 3D</button>
+            <button class="btn btn--primary tour__start" type="button" data-tour-start>Entrar no quarto em 360 graus</button>
           </div>
-          <p class="maquete__fallback" data-room3d-fallback hidden>A planta em 3D precisa de um navegador com WebGL. A descrição completa do quarto está ao lado e vale por ela.</p>
-          <div class="maquete__controls">
-            <button class="maquete__btn" type="button" data-view="porta">Da porta</button>
-            <button class="maquete__btn" type="button" data-view="janela">Da janela</button>
-            <button class="maquete__btn" type="button" data-view="planta">De cima</button>
-            <button class="maquete__btn" type="button" data-nudge="esq"><span aria-hidden="true">&#8634;</span><span class="visually-hidden">Girar para a esquerda</span></button>
-            <button class="maquete__btn" type="button" data-nudge="dir"><span aria-hidden="true">&#8635;</span><span class="visually-hidden">Girar para a direita</span></button>
+          <p class="tour__aviso" data-tour-aviso hidden>O tour precisa de um navegador com WebGL. A descrição completa do quarto está ao lado e vale por ela.</p>
+          <div class="tour__controles">
+            <button class="tour__btn" type="button" data-olhar="esq"><span aria-hidden="true">&#8592;</span><span class="visually-hidden">Olhar para a esquerda</span></button>
+            <button class="tour__btn" type="button" data-olhar="dir"><span aria-hidden="true">&#8594;</span><span class="visually-hidden">Olhar para a direita</span></button>
+            <button class="tour__btn" type="button" data-olhar="cima"><span aria-hidden="true">&#8593;</span><span class="visually-hidden">Olhar para cima</span></button>
+            <button class="tour__btn" type="button" data-olhar="baixo"><span aria-hidden="true">&#8595;</span><span class="visually-hidden">Olhar para baixo</span></button>
+            <button class="tour__btn tour__btn--texto" type="button" data-olhar="inicio">Recomeçar</button>
           </div>
-          <p class="maquete__status" data-room3d-status role="status"></p>
+          <p class="tour__status" data-tour-status role="status"></p>
         </div>
-        <div class="maquete__side stack">
+        <div class="tour__lado stack">
           <h3>Como o quarto é por dentro</h3>
-          <ul class="maquete__list"><li>Cama king centralizada, com circulação ampla nos dois lados</li><li>Poltrona de leitura junto à parede esquerda</li><li>Escrivaninha e armário alinhados na parede direita</li><li>Janela na parede do fundo, atrás da cabeceira</li><li>Banheiro privativo mais largo, à direita de quem entra</li></ul>
-          <p class="muted fineprint">Proporções aproximadas. A figura tem 1,70 m e serve de escala.</p>
+          <ul class="tour__lista"><li>Cama king centralizada, com circulação ampla nos dois lados</li><li>Poltrona de leitura junto à parede esquerda</li><li>Escrivaninha e armário alinhados na parede direita</li><li>Janela na parede do fundo, atrás da cabeceira</li><li>Banheiro privativo mais largo, à direita de quem entra</li></ul>
+          <p class="muted fineprint">Imagem de demonstração do padrão do quarto.</p>
         </div>
       </div>
     </div>

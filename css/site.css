@@ -130,7 +130,7 @@
   .cena { height: clamp(32rem, 84svh, 44rem); }
   /* Encostada na base e ainda posicionada: o canvas e absoluto e pinta por cima
      de qualquer filho fora de posicionamento, entao com position static a ficha
-     sumia atras dele. Em baixo ela tambem deixa a maquete a vista. */
+     sumia atras dele. Em baixo ela tambem deixa o predio a vista. */
   .cena .ficha {
     position: absolute; inset: auto var(--gutter) var(--space-3);
     width: auto; transform: none; margin: 0;
@@ -265,14 +265,6 @@
   color: var(--color-text); transition: background 200ms ease, color 200ms ease;
 }
 .gal__arrow:hover { background: var(--color-accent); color: var(--color-on-accent); }
-/* Controles da maquete: texto sublinhado, sem caixa, com area de toque de 44 px */
-.maquete__btn {
-  background: none; border: 0; padding: var(--space-3) var(--space-2);
-  min-height: 2.75rem; min-width: 2.75rem;
-  color: var(--color-text); text-decoration: underline; text-underline-offset: 0.3em;
-  transition: color 200ms ease;
-}
-.maquete__btn:hover { color: var(--color-accent); }
 .gal__arrow .icon--prev { transform: rotate(180deg); }
 .gal__dots { display: flex; gap: var(--space-2); margin-inline: auto 0; }
 .gal__dots li { max-width: none; display: flex; }
@@ -293,22 +285,47 @@
 .gal:not(.is-live) .gal__track { flex-direction: column; gap: var(--space-4); }
 
 /* Maquete 3D */
-.maquete { display: grid; gap: var(--space-6); align-items: start; }
-.maquete__stage { position: relative; display: grid; gap: var(--space-4); }
-.maquete__canvas { width: 100%; height: clamp(16rem, 44vw, 26rem); display: block; border-radius: var(--radius-lg); background: var(--color-surface); touch-action: pan-y; }
-.maquete__cover { position: absolute; inset: 0; display: grid; place-items: center; border-radius: var(--radius-lg); overflow: hidden; height: clamp(16rem, 44vw, 26rem); }
-.maquete__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.maquete__start { position: relative; }
-.maquete[data-ready="true"] .maquete__cover { display: none; }
-.maquete__controls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.maquete__btn { font-size: var(--step--1); min-height: 2.75rem; }
-.maquete__status { min-height: 1.5em; font-size: var(--step--1); color: var(--color-muted); margin: 0; }
-.maquete__fallback { font-size: var(--step--1); color: var(--color-muted); max-width: 48ch; }
-.maquete__side h3 { font-size: var(--step-1); }
-.maquete__list { display: grid; gap: var(--space-3); }
-.maquete__list li { max-width: 40ch; padding-left: var(--space-4); position: relative; }
-.maquete__list li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 0.5rem; height: 1px; background: var(--color-accent); }
-@media (min-width: 64em) { .maquete { grid-template-columns: 7fr 5fr; gap: var(--space-8); } }
+/* Tour 360: palco do panorama e a descricao em texto ao lado */
+.tour { display: grid; gap: var(--space-6); align-items: start; }
+.tour__palco { position: relative; display: grid; gap: var(--space-4); }
+.tour__canvas {
+  width: 100%; height: clamp(18rem, 48vw, 30rem); display: block;
+  border-radius: var(--radius-lg); background: var(--color-surface);
+  touch-action: pan-y; user-select: none;
+}
+.tour__capa {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  border-radius: var(--radius-lg); overflow: hidden;
+  height: clamp(18rem, 48vw, 30rem);
+}
+.tour__capa img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tour__capa::after {
+  content: ""; position: absolute; inset: 0;
+  background: rgba(8, 12, 26, 0.42);
+}
+.tour__start { position: relative; }
+.tour[data-pronto="true"] .tour__capa { display: none; }
+.tour__controles { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+/* 2.75rem de alvo: acima do minimo de 24 px do criterio 2.5.8 da WCAG 2.2 */
+.tour__btn {
+  min-width: 2.75rem; min-height: 2.75rem; padding: 0 var(--space-3);
+  font: inherit; font-size: var(--step--1); line-height: 1;
+  color: var(--color-text); background: var(--color-surface);
+  border: 0; border-radius: var(--radius-pill);
+  cursor: pointer; transition: color 180ms ease, background 180ms ease;
+}
+.tour__btn:hover { color: var(--color-accent); }
+.tour__btn--texto { padding-inline: var(--space-4); }
+.tour__status { min-height: 1.5em; font-size: var(--step--1); color: var(--color-muted); margin: 0; }
+.tour__aviso { font-size: var(--step--1); color: var(--color-muted); max-width: 48ch; }
+.tour__lado h3 { font-size: var(--step-1); }
+.tour__lista { display: grid; gap: var(--space-3); }
+.tour__lista li { max-width: 40ch; padding-left: var(--space-4); position: relative; }
+.tour__lista li::before {
+  content: ""; position: absolute; left: 0; top: 0.65em;
+  width: 0.5rem; height: 1px; background: var(--color-accent);
+}
+@media (min-width: 64em) { .tour { grid-template-columns: 7fr 5fr; gap: var(--space-8); } }
 
 /* Comodidades */
 .amen { display: grid; gap: var(--space-3); }
