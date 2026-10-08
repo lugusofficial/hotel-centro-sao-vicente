@@ -541,3 +541,14 @@ body > main > .section:only-child { margin-block: auto; }
 .idiomas__atual { font-weight: 600; text-decoration: underline; text-underline-offset: 0.3em; }
 .idiomas a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
 @media (min-width: 48em) { .idiomas { margin-left: 0; order: 3; } }
+
+/* Icone do bloco: mesma familia de traco das comodidades, alinhado com o
+   titulo em vez de empurra-lo para o lado, que e o que acontece quando o
+   icone divide a linha com um titulo de duas linhas. */
+.blocks > li { display: grid; grid-template-columns: 1.5rem 1fr; gap: var(--space-2) var(--space-3); }
+.blocks > li > h2 { margin: 0; align-self: center; }
+.blocks > li > p { grid-column: 2; }
+.blocos__icone {
+  width: 1.5rem; height: 1.5rem; align-self: center;
+  color: var(--color-accent); flex: none;
+}
