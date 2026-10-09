@@ -171,9 +171,16 @@ if (root) {
   if (botaoAbrir) {
     botaoAbrir.addEventListener('click', () => {
       if (!montado) {
+        const rotulo = botaoAbrir.textContent;
         botaoAbrir.disabled = true;
         botaoAbrir.textContent = fr('carregandoPredio', 'Carregando o prédio');
-        subir().then(() => { abrirAmplo(); }).catch(semWebgl);
+        subir().then(() => {
+          // Devolve o botao ao estado normal: sem isto ele fica travado em
+          // "carregando" para sempre e, depois de fechar, nao reabre.
+          botaoAbrir.disabled = false;
+          botaoAbrir.textContent = rotulo;
+          abrirAmplo();
+        }).catch(semWebgl);
         return;
       }
       abrirAmplo();

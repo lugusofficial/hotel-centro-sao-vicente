@@ -666,7 +666,19 @@ body > main > .section:only-child { margin-block: auto; }
   .cena[data-amplo="true"] .cena__texto,
   .cena[data-amplo="true"] .cena__veu,
   .cena[data-amplo="true"] .cena__acao { display: none; }
+  /* Antes de abrir o 3D os chips nao comandam nada: o predio nem existe, e
+     eles so repetem os tipos que os cartoes logo abaixo ja listam. Ficam fora
+     da tela, junto com o botao de filtros, ate o 3D estar de pe. */
+  .tipos, .busca { display: none; }
+  body:has(.cena[data-amplo="true"]) .tipos,
+  body:has(.cena[data-amplo="true"]) .busca { display: flex; }
   .cena[data-amplo="true"] .tipos { bottom: var(--space-4); }
+  /* Em tela cheia a cena vira fixed com z-index 80, e o painel vive noutra
+     secao: sem subir a camada ele fica atras do predio e some. Sobe tambem
+     acima da fileira de chips, que ocupa a base. */
+  body:has(.cena[data-amplo="true"]) .busca {
+    position: fixed; z-index: 81; bottom: 5.25rem;
+  }
   .cena[data-amplo="true"] .cena__fechar {
     display: grid; place-items: center;
     position: absolute; z-index: 5; top: var(--space-4); right: var(--gutter);
