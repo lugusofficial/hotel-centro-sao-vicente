@@ -171,4 +171,47 @@
   gallery();
   priceBar();
   headerSobreCena();
+  /* Video do heroi. Toca mudo e em loop sempre, sem botao, a pedido do
+     cliente (13/10): o video e a vitrine do hotel. O script so pausa quando
+     o heroi sai da tela, para nao gastar bateria nem banda, e retoma quando
+     volta. Se o navegador recusar o autoplay (economia de bateria do iOS),
+     fica o poster. */
+  function heroVideo() {
+    var raiz = document.querySelector('[data-video]');
+    if (!raiz) { return; }
+    var video = raiz.querySelector('[data-video-el]');
+    if (!video) { return; }
+    var trocado = false;
+    // Economia de bateria do iPhone recusa o play() mesmo mudo. Nesse caso o
+    // video da lugar a mesma cena em webp animado, que o Safari anima sempre.
+    // Carregado so aqui, para quem toca o video nao baixar os dois.
+    var trocar = function () {
+      var src = video.getAttribute('data-fallback');
+      if (trocado || !src) { return; }
+      trocado = true;
+      var img = document.createElement('img');
+      img.className = video.className;
+      img.alt = '';
+      img.setAttribute('aria-hidden', 'true');
+      img.src = src;
+      video.pause();
+      video.replaceWith(img);
+    };
+    var tocar = function () {
+      if (trocado) { return; }
+      var p = video.play();
+      if (p) { p.catch(function (e) { if (e && e.name === 'NotAllowedError') { trocar(); } }); }
+    };
+    tocar();
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (en) {
+          if (!en.isIntersecting) { if (!video.paused) { video.pause(); } }
+          else if (video.paused) { tocar(); }
+        });
+      }, { threshold: 0.2 }).observe(raiz);
+    }
+  }
+
+  heroVideo();
 })();
