@@ -42,6 +42,9 @@ if (root) {
       + `<div role="group" aria-labelledby="ficha-andares">${botoes}</div></div>`;
   };
 
+  // Vista da janela na ficha: desligada a pedido do cliente (29/10, "fica
+  // estranho no celular por enquanto"). As imagens continuam em assets/janela.
+  const VISTA_NA_FICHA = false;
   // Vista da janela por fachada e faixa de andar (blender/fachada_m.py).
   const vistaDaJanela = (q) => {
     const andar = Math.floor(q.numero / 100);
@@ -221,10 +224,10 @@ if (root) {
           <button type="button" class="ficha__fechar" data-acao="geral"><span aria-hidden="true">×</span><span class="visually-hidden">${fr('predioInteiro', 'Ver o prédio inteiro')}</span></button>
           <p class="ficha__num">${fr('quarto', 'Quarto')} ${q.numero}</p>
           <p class="ficha__tipo">${nomeTipo(q.tipo, tipo)}</p>
-          <figure class="ficha__vista">
+          ${VISTA_NA_FICHA ? `<figure class="ficha__vista">
             <img src="${vistaDaJanela(q)}" alt="${fr('vistaAlt', 'Vista simulada da janela do quarto {n}').replace('{n}', q.numero)}" width="640" height="360">
             <figcaption>${fr('vistaLegenda', 'Vista da janela, simulada')}</figcaption>
-          </figure>
+          </figure>` : ''}
           <dl class="ficha__dados">
             <div><dt>${fr('diaria', 'Diária')}</dt><dd>R$ ${q.precoBase}</dd></div>
             <div><dt>${fr('andar', 'Andar')}</dt><dd>${Math.floor(q.numero / 100)}</dd></div>
@@ -270,6 +273,7 @@ if (root) {
       const m = location.hash.match(/^#quarto=(\d+)$/);
       if (m) api.selecionar(Number(m[1]));
       canvas.addEventListener('fachada:girou', esconderDica, { once: true });
+      canvas.addEventListener('fachada:tocou', esconderDica, { once: true });
       // Os chips viram botoes com o predio de pe: escolhem o quarto que
       // representa o tipo na fachada em vez de sair da pagina.
       root.querySelectorAll('a[data-room-link]').forEach((a) => {
@@ -299,7 +303,8 @@ if (root) {
     if (!celular() || !api || api.modo() !== 'quarto' || !ficha) return;
     if (!ficha.contains(ev.target)) api.verGeral();
   });
-  root.addEventListener('keydown', (ev) => {
+  // no documento: depois de um toque o foco pode ir para o body
+  document.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape' && api && api.modo() === 'quarto') api.verGeral();
   });
 

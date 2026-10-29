@@ -34,11 +34,20 @@
 .cena__video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
 /* Setinha no pe do heroi: avisa que a pagina continua abaixo do video. */
 .cena__seta {
-  position: absolute; left: 50%; bottom: var(--space-5); transform: translateX(-50%);
-  display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%;
-  color: var(--color-bg); background: rgba(8,12,26,0.45);
+  position: absolute; z-index: 2; left: 50%; bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 3rem; padding: 0 var(--space-4) 0 var(--space-5); border-radius: 999px;
+  color: var(--color-text); background: var(--color-bg);
+  font-size: var(--step--1); font-weight: var(--weight-body-medium); letter-spacing: 0.02em;
+  text-decoration: none; white-space: nowrap;
 }
-.cena__seta svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* convite claro para o predio interativo: pilula creme sobre o video escuro */
+.cena__seta:hover, .cena__seta:focus-visible { color: var(--color-accent); }
+/* some quando a pagina comeca a rolar: o convite ja foi aceito */
+.cena__seta { transition: opacity 300ms ease, color 200ms ease; }
+html[data-rolou] .cena__seta:not(:focus-visible) { opacity: 0; pointer-events: none; }
+.cena__seta svg { flex: none; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: no-preference) { .cena__seta svg { animation: seta 2.2s ease-in-out infinite; } }
 @keyframes seta { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(4px); } }
 .cena__veu {
@@ -73,7 +82,6 @@
     background: linear-gradient(180deg, rgba(8,12,26,0.9) 0%, rgba(8,12,26,0.7) 38%,
       rgba(8,12,26,0.12) 62%, rgba(8,12,26,0) 76%);
   }
-  .cena__seta { left: var(--gutter); transform: none; }
 }
 
 /* Listagem de quartos: cartao delimitado de verdade, com superficie propria,
@@ -428,7 +436,9 @@ body > main > .section:only-child { margin-block: auto; }
 }
 .idiomas__atual { font-weight: 600; text-decoration: underline; text-underline-offset: 0.3em; }
 .idiomas a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
-@media (min-width: 48em) { .idiomas { margin-left: var(--space-3); order: 3; } }
+/* so com o menu aberto em linha (60em): abaixo disso o botao do menu fica
+   no canto e o idioma ao lado dele, como no celular */
+@media (min-width: 60em) { .idiomas { margin-left: var(--space-3); order: 3; } }
 
 /* Icone do bloco: mesma familia de traco das comodidades, alinhado com o
    titulo em vez de empurra-lo para o lado, que e o que acontece quando o
@@ -594,13 +604,17 @@ main > section.fachada { background: #080c1a; color: var(--color-bg); padding-bo
 
 /* Celular e tablet: o palco em cima, o painel embaixo */
 @media (max-width: 55.99em) {
-  .fachada__grade { grid-template-columns: 1fr; gap: var(--space-4); width: 100%; }
+  /* minmax(0, 1fr): sem isso a fileira de chips (sem quebra) alargava a
+     coluna alem da tela e o celular reduzia o zoom da pagina inteira */
+  .fachada__grade { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); width: 100%; }
+  .fachada__painel { min-width: 0; }
   .fachada__palco { height: clamp(26rem, 64svh, 36rem); border-radius: var(--radius-sm); }
   .fachada__painel { padding: 0 var(--gutter); gap: var(--space-4); }
   .fachada__intro h2 { font-size: var(--step-2); }
-  .fachada .tipos ul { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  /* chips quebram linha: rolando de lado o ultimo aparecia cortado */
+  .fachada .tipos ul { flex-wrap: wrap; }
   .tipos__chip { white-space: nowrap; padding: 0 var(--space-3); }
-  .fachada__dica { bottom: 5rem; }
+  .fachada__dica { bottom: auto; top: var(--space-3); white-space: nowrap; font-size: 0.8rem; }
   /* gaveta presa no pe da tela, com o palco visivel acima */
   .ficha {
     position: fixed; z-index: 60; left: var(--space-2); right: var(--space-2); top: auto; bottom: var(--space-2);
@@ -660,6 +674,30 @@ main > section.fachada { background: #080c1a; color: var(--color-bg); padding-bo
   /* no celular a regua cobriria as janelas da direita do predio: o andar
      se escolhe pelo filtro e pela ficha */
   .regua { display: none; }
-  .fachada__legenda { left: var(--space-2); bottom: auto; top: var(--space-2); }
+  .fachada__legenda { left: var(--space-2); bottom: var(--space-4); }
   .ficha { width: auto; }
+}
+
+/* Instrucao do giro: setas que deslizam para os lados ate o primeiro toque.
+   No celular ela substitui os botoes de girar. */
+.fachada__dica { flex-direction: row; gap: var(--space-3); padding: var(--space-2) var(--space-3); }
+.dica__texto { display: grid; text-align: center; line-height: 1.25; }
+.dica__texto strong { font-weight: var(--weight-body-medium); color: #f6efe3; }
+.dica__texto span { font-size: 0.75rem; color: #f0c489; }
+.dica__seta { display: grid; place-items: center; flex: none; width: 1.4rem; color: #f0c489; }
+.dica__seta svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .dica__seta--esq { animation: dica-esq 1.4s ease-in-out infinite; }
+  .dica__seta--dir { animation: dica-dir 1.4s ease-in-out infinite; }
+}
+@keyframes dica-esq { 0%, 100% { transform: translateX(0); opacity: 0.55; } 50% { transform: translateX(-6px); opacity: 1; } }
+@keyframes dica-dir { 0%, 100% { transform: translateX(0); opacity: 0.55; } 50% { transform: translateX(6px); opacity: 1; } }
+.fachada__dica[hidden] { display: none; }
+
+@media (max-width: 55.99em) {
+  /* no celular gira pelo gesto, com a instrucao acima; os chips e filtros
+     continuam levando a qualquer quarto sem arrastar */
+  .fachada__giro { display: none; }
+  .fachada__dica { top: auto; bottom: var(--space-4); left: 50%; transform: translateX(-50%); font-size: 0.85rem; }
+  .fachada__legenda { bottom: auto; top: var(--space-3); }
 }

@@ -1,7 +1,7 @@
 // Predio do hotel para escolher o quarto, em fotos renderizadas no Blender.
 //
 // O predio e o real, modelado a partir das fotos e renderizado no Cycles em
-// 96 vistas em volta dele (blender/fachada_m.py), uma a cada 3,75 graus. Cada
+// 192 vistas em volta dele (blender/fachada_m.py), uma a cada 1,875 grau. Cada
 // vista traz os quatro cantos de cada janela de quarto projetados na imagem:
 // girar e trocar de foto, clicar e testar o ponto contra a janela.
 //
@@ -53,7 +53,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     fetch(new URL('data/fachada.json', base)).then((r) => r.json()),
   ]);
   const N = giro.vistas.length;
-  const PX_POR_VISTA = Math.max(6, 900 / N);   // uma volta inteira em ~900 px de arraste
+  const PX_POR_VISTA = Math.max(4, 900 / N);   // uma volta inteira em ~900 px de arraste
   const porNumero = new Map();
   hotel.andares.forEach((a) => a.quartos.forEach((q) => porNumero.set(q.numero, q)));
 
@@ -71,7 +71,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   const leve = new Array(N).fill(null);
   const nitida = new Array(N).fill(null);
   const sufixo = (camada) => {
-    if (camada === 'leve') return celular() ? '-s' : '-m';
+    if (camada === 'leve') return '-s';
     const px = canvas.clientWidth * Math.min(devicePixelRatio || 1, 2);
     return px > 1100 ? '' : '-m';
   };
@@ -80,15 +80,24 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     if (lista[k]) return lista[k].pronta;
     const im = new Image();
     im.decoding = 'async';
+    // decode() antes de marcar pronta: o primeiro drawImage de uma foto que
+    // ainda nao foi decodificada trava o quadro, e e isso que se sente como
+    // giro "travado" na primeira volta
     const pronta = new Promise((ok) => {
-      im.onload = () => { invalidar(); ok(im); };
+      im.onload = () => {
+        (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => {
+          im.dataset.pronta = '1';
+          invalidar();
+          ok(im);
+        });
+      };
       im.onerror = () => ok(null);
     });
     im.src = new URL(giro.vistas[k].img.replace('.jpg', `${sufixo(camada)}.jpg`), base).href;
     lista[k] = { im, pronta };
     return pronta;
   }
-  const ok = (lista, k) => lista[k] && lista[k].im.complete && lista[k].im.naturalWidth > 0;
+  const ok = (lista, k) => lista[k] && lista[k].im.dataset.pronta === '1';
   let todasPedidas = false;
   function pedirTodas() {
     if (todasPedidas) return;
@@ -103,6 +112,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   // ---------------------------------------------------------------- estado
   let vista = 0;
   let velocidade = 0;       // vistas por quadro, na inercia
+  let alvoArrasto = null;   // onde o dedo esta; o predio persegue com amortecimento
+  let convidando = false;   // balanco de convite em andamento
   let zoom = 1;
   let foco = null;
   let selecionado = null;
@@ -253,6 +264,13 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
       if (u >= 1) { anims.delete(chave); if (an.fim) an.fim(); }
       precisa = true;
     });
+    // o predio persegue o dedo a cada quadro: os eventos do ponteiro chegam
+    // em ritmo irregular, e seguir cada um faz o giro andar aos trancos
+    if (arrasto && alvoArrasto !== null) {
+      const d = alvoArrasto - vista;
+      vista = Math.abs(d) < 0.002 ? alvoArrasto : vista + d * 0.4;
+      precisa = true;
+    }
     // inercia do giro depois de soltar o arraste
     if (velocidade !== 0 && !arrasto) {
       vista += velocidade;
@@ -406,8 +424,14 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   canvas.addEventListener('pointerdown', (ev) => {
     pedirTodas();
+    // tocar com o predio ainda girando (inercia, encaixe, balanco de convite)
+    // para na hora e encaixa na vista mais proxima: sem isso o toque caia
+    // numa vista fracionaria e nao achava janela nenhuma
     velocidade = 0;
     anims.delete('vista');
+    vista = idx(vista);
+    convidando = false;
+    canvas.dispatchEvent(new CustomEvent('fachada:tocou'));
     arrasto = { x: ev.clientX, y: ev.clientY, v: vista, girando: false, id: ev.pointerId,
                 ultX: ev.clientX, ultT: performance.now(), vel: 0 };
   });
@@ -430,7 +454,7 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
         arrasto.vel = arrasto.vel * 0.7 + inst * 0.3;
         arrasto.ultX = ev.clientX;
         arrasto.ultT = agora;
-        vista = arrasto.v - dx / PX_POR_VISTA;
+        alvoArrasto = arrasto.v - dx / PX_POR_VISTA;
         invalidar();
       }
       return;
@@ -463,18 +487,19 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     const { girando } = arrasto;
     const vel = arrasto.vel;
     arrasto = null;
+    alvoArrasto = null;
     if (girando) {
       // a mao solta o predio com a velocidade que tinha; o atrito para
       if (Math.abs(vel) > 0.05 && !semMovimento()) velocidade = Math.max(-1.2, Math.min(1.2, vel));
       else encaixar();
       return;
     }
-    const n = janelaEm(ev, ev.pointerType === 'mouse' ? 0 : 26);
+    const n = janelaEm(ev, ev.pointerType === 'mouse' ? 0 : 40);
     if (n) selecionar(n);
     else if (modo === 'quarto') verGeral();
   };
   canvas.addEventListener('pointerup', soltar);
-  canvas.addEventListener('pointercancel', () => { arrasto = null; encaixar(); });
+  canvas.addEventListener('pointercancel', () => { arrasto = null; alvoArrasto = null; encaixar(); });
   canvas.addEventListener('pointerleave', () => {
     if (tooltip) tooltip.hidden = true;
     if (sobre) { sobre = null; realcarAndar(null); invalidar(); }
@@ -485,6 +510,39 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   await carregar('nitida', 0);
   requestAnimationFrame(tick);
+  // Balanco de convite: quando o palco aparece, o predio gira um pouco para
+  // um lado e volta, uma vez, como os visualizadores 360 fazem para mostrar
+  // que da para girar. Para no primeiro toque.
+  function convidar() {
+    if (semMovimento() || arrasto || modo !== 'geral') return;
+    const passos = Math.round(N / 24);      // 15 graus
+    const ida = [];
+    for (let d = 1; d <= passos; d += 1) ida.push(carregar('leve', d % N), carregar('leve', (N - d) % N));
+    Promise.all(ida).then(() => {
+      if (arrasto || modo !== 'geral' || Math.round(vista) !== 0) return;
+      convidando = true;
+      const seq = [passos, -passos, 0];
+      const passo = (i) => {
+        if (!convidando || i >= seq.length) { convidando = false; return; }
+        animar('vista', vista, seq[i], 900, (v) => { vista = v; }, () => passo(i + 1));
+      };
+      passo(0);
+    });
+  }
+  // as fotos leves do giro descem assim que o palco aparece na tela, antes do
+  // primeiro toque: o primeiro arraste ja encontra tudo decodificado
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) {
+        io.disconnect();
+        pedirTodas();
+        setTimeout(convidar, 700);
+      }
+    }, { threshold: 0.5 });
+    io.observe(canvas);
+  } else {
+    pedirTodas();
+  }
 
   const giroRad = (hotel.rotacaoGraus * Math.PI) / 180;
   const DATA = new Date();

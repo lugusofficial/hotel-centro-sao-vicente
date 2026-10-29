@@ -167,6 +167,17 @@
     }
   }
 
+  /* Seta do heroi: some quando a pagina comeca a rolar. */
+  function setaDoHeroi() {
+    var marcar = function () {
+      if (window.scrollY > 40) { document.documentElement.setAttribute('data-rolou', ''); }
+      else { document.documentElement.removeAttribute('data-rolou'); }
+    };
+    marcar();
+    window.addEventListener('scroll', marcar, { passive: true });
+  }
+
+  setaDoHeroi();
   reveal();
   gallery();
   priceBar();
@@ -182,11 +193,14 @@
     var video = raiz.querySelector('[data-video-el]');
     if (!video) { return; }
     var trocado = false;
+    // celular em pe: poster e animacao de reserva tambem na versao vertical
+    var emPe = window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+    if (emPe && video.getAttribute('data-poster-v')) { video.setAttribute('poster', video.getAttribute('data-poster-v')); }
     // Economia de bateria do iPhone recusa o play() mesmo mudo. Nesse caso o
     // video da lugar a mesma cena em webp animado, que o Safari anima sempre.
     // Carregado so aqui, para quem toca o video nao baixar os dois.
     var trocar = function () {
-      var src = video.getAttribute('data-fallback');
+      var src = (emPe && video.getAttribute('data-fallback-v')) || video.getAttribute('data-fallback');
       if (trocado || !src) { return; }
       trocado = true;
       var img = document.createElement('img');

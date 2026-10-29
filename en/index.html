@@ -23,12 +23,12 @@
 <link rel="alternate" hreflang="x-default" href="https://lugusofficial.github.io/hotel-centro-sao-vicente/index.html">
 <link rel="stylesheet" href="../css/tokens.css">
 <link rel="stylesheet" href="../css/base.css">
-<link rel="stylesheet" href="../css/site.css?v=a6924083">
+<link rel="stylesheet" href="../css/site.css?v=69a51e00">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Hotel", "name": "Sua Marca", "url": "https://lugusofficial.github.io/hotel-centro-sao-vicente/", "telephone": "+0000000000", "email": "reservas@example.com", "address": {"@type": "PostalAddress", "streetAddress": "Rua Exemplo, 123", "addressLocality": "São Vicente", "addressRegion": "SP", "addressCountry": "BR"}, "numberOfRooms": 98, "checkinTime": "14:00", "checkoutTime": "12:00", "amenityFeature": [{"@type": "LocationFeatureSpecification", "name": "Air conditioning"}, {"@type": "LocationFeatureSpecification", "name": "Wi-Fi throughout the hotel"}, {"@type": "LocationFeatureSpecification", "name": "Cable TV"}, {"@type": "LocationFeatureSpecification", "name": "Minibar"}, {"@type": "LocationFeatureSpecification", "name": "In-room safe"}, {"@type": "LocationFeatureSpecification", "name": "Private bathroom"}, {"@type": "LocationFeatureSpecification", "name": "Breakfast included"}, {"@type": "LocationFeatureSpecification", "name": "Linen changed daily"}]}</script>
 <script type="application/json" id="i18n">{"quarto": "Room", "diaria": "Rate", "andar": "Floor", "vista": "View", "hospedes": "Guests", "disponivel": "Available", "ocupado": "Occupied", "indisponivel": "Not available on these dates", "trocarAndar": "Change floor", "ver": "See the {tipo}", "predioInteiro": "See the whole building", "semSelecao": "Whole building. No room selected.", "emFoco": "Room {numero} in focus, floor {andar}.", "girouEsq": "Building turned left", "girouDir": "Building turned right", "vistaMar": "sea", "vistaCidade": "city", "tipos": {"solteiro": "Single Room", "casal": "Double Room", "superior": "Superior Room", "familia": "Family Room"}, "tourSemWebgl": "Tour unavailable in this browser", "tourFalhou": "The tour could not be loaded", "tourCarregando": "Loading the tour", "tourAberto": "Tour open. Drag to look around, or use the buttons below.", "tourParado": "Reduced motion is on. The tour opens still, at the starting point.", "olhouEsq": "Looked left", "olhouDir": "Looked right", "olhouCima": "Looked up", "olhouBaixo": "Looked down", "olhouInicio": "Back to the starting point", "foto": "Photo {i} of {n}", "sol": "Direct sun", "semSol": "Little direct sun", "faixaSol": "{de}h to {ate}h", "contaTodos": "{l} of {n} rooms free today", "contaFiltro": "{n} rooms match, {l} free", "resumoAndar": "Floor {a}: {n} free, from R$ {p}", "vistaAlt": "Simulated view from the window of room {n}", "vistaLegenda": "View from the window, simulated", "baseTipo": "{tipo} base rate", "andarAlto": "Floor {a}", "vistaMarMais": "Sea view", "comoPreco": "How this rate is made", "reservarEste": "Book room {n} on WhatsApp", "msgReserva": "Hi! I would like to book room {n} ({tipo}), floor {a}, {v} view, R$ {p} per night.", "andarFiltrado": "Floor {a} highlighted", "amploAberto": "Building in full screen. Drag to turn it.", "carregandoPredio": "Loading the building"}</script>
 <script src="../js/main.js" defer></script>
-<script src="../js/app.js?v=79ae0c05" defer></script>
-<script type="importmap">{"imports":{"../js/fachada.js":"../js/fachada.js?v=6bba8eff","../js/sol.js":"../js/sol.js?v=56129e5b"}}</script><script type="module" src="../js/fachada-init.js?v=6d1405d4"></script>
+<script src="../js/app.js?v=fc7a2e36" defer></script>
+<script type="importmap">{"imports":{"../js/fachada.js":"../js/fachada.js?v=2a76ebb6","../js/sol.js":"../js/sol.js?v=56129e5b"}}</script><script type="module" src="../js/fachada-init.js?v=3f2a683b"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -52,10 +52,14 @@
   <section class="cena cena--video" id="top" aria-labelledby="page-title" data-video>
     <!-- Predio modelado no Blender a partir das fotos da fachada e renderizado
          no Cycles (blender/hero_m.py). Mudo, em loop, sem botao; o js/app.js
-         so pausa fora da tela. -->
+         so pausa fora da tela. Celular em pe recebe a versao vertical (9:16):
+         o 16:9 recortado virava um close desfocado do letreiro. -->
     <video class="cena__video" autoplay muted loop playsinline preload="auto"
            poster="../assets/predio-noite.jpg" aria-hidden="true" data-video-el
-           data-fallback="../assets/predio-noite.webp">
+           data-fallback="../assets/predio-noite.webp" data-fallback-v="../assets/predio-noite-v.webp"
+           data-poster-v="../assets/predio-noite-v.jpg">
+      <source src="../assets/predio-noite-v.webm" type="video/webm" media="(orientation: portrait)">
+      <source src="../assets/predio-noite-v.mp4" type="video/mp4" media="(orientation: portrait)">
       <source src="../assets/predio-noite.webm" type="video/webm">
       <source src="../assets/predio-noite.mp4" type="video/mp4">
     </video>
@@ -68,7 +72,7 @@
         <p><a class="btn btn--primary" href="quartos.html">See the rooms</a></p>
       </div>
     </div>
-    <a class="cena__seta" href="#escolha"><span class="visually-hidden">See more below</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+    <a class="cena__seta" href="#fachada"><span>Choose your room</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
   </section>
 
   <!-- Predio real renderizado no Blender em 24 vistas (blender/fachada_m.py).
@@ -81,7 +85,7 @@
         <canvas class="fachada__canvas" data-predio-canvas aria-hidden="true"></canvas>
         <ol class="regua" data-regua aria-label="Floors: free rooms and lowest rate" hidden></ol>
         <p class="fachada__legenda" aria-hidden="true"><span class="legenda__livre"></span>Free <span class="legenda__ocupado"></span>Taken</p>
-        <p class="fachada__dica" data-predio-dica aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-4 5 4 5M16 7l4 5-4 5"/></svg>Drag to turn</p>
+        <p class="fachada__dica" data-predio-dica aria-hidden="true"><span class="dica__seta dica__seta--esq"><svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg></span><span class="dica__texto"><strong>Drag to turn</strong><span>Tap a lit window</span></span><span class="dica__seta dica__seta--dir"><svg viewBox="0 0 24 24"><path d="M10 6l6 6-6 6"/></svg></span></p>
         <div class="tip" data-predio-tooltip hidden></div>
         <div class="ficha" data-predio-ficha tabindex="-1" hidden></div>
         <div class="fachada__giro" role="group" aria-label="Turn the building">
