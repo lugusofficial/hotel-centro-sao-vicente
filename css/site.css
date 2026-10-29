@@ -18,7 +18,7 @@
 /* Heroi da home: o video do predio ocupa a secao inteira e e a imagem principal do site */
 .cena {
   position: relative;
-  height: clamp(28rem, 82vh, 48rem);
+  height: max(36rem, 100svh);
   overflow: hidden;
   background: #080c1a;
   /* Sobe por tras do cabecalho para ele flutuar sobre o ceu. Padrao 0px, entao
@@ -463,72 +463,99 @@ body > main > .section:only-child { margin-block: auto; }
   .cena__texto h1 { font-size: var(--step-3); }
 }
 
-/* Escolha do quarto na fachada: o predio real renderizado no Blender em 24
-   vistas (js/fachada.js). Palco escuro de ponta a ponta, titulo no alto,
-   barra de chips, giro e filtros no pe, ficha saindo da janela escolhida. */
-.fachada { background: #080c1a; color: var(--color-bg); }
-.fachada__palco { position: relative; height: clamp(34rem, 86svh, 50rem); overflow: hidden; }
-.fachada__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; user-select: none; }
-.fachada__topo {
-  position: absolute; z-index: 2; left: 0; right: 0; top: 0;
-  padding: var(--space-6) var(--gutter) var(--space-7);
-  width: min(100%, 64rem + 2 * var(--gutter)); margin-inline: auto;
+/* Escolha do quarto na fachada: o predio real renderizado no Blender em 96
+   vistas (js/fachada.js). Palco limpo a esquerda, so com o predio; painel a
+   direita com titulo, tipos, filtros e a ficha do quarto. O heroi acima
+   termina em degrade no mesmo azul da noite, entao as duas secoes se emendam
+   em vez de cortar seco. */
+.cena::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 22%;
+  background: linear-gradient(180deg, rgba(8,12,26,0) 0%, #080c1a 100%);
   pointer-events: none;
 }
-.fachada__topo .label { color: #f0c489; }
-.fachada__topo h2 { color: var(--color-bg); max-width: 18ch; }
-.fachada__lead { color: var(--color-rule); max-width: 34ch; margin: var(--space-2) 0 0; }
+html { scroll-padding-top: calc(var(--altura-header, 5rem) + var(--space-3)); }
+main > section.fachada { background: #080c1a; color: var(--color-bg); padding-bottom: var(--space-6); }  /* vence a alternancia de fundo do base.css */
+.fachada__grade {
+  display: grid; grid-template-columns: minmax(0, 1fr) 23rem; gap: var(--space-5);
+  width: min(100% - 2 * var(--gutter), 84rem); margin-inline: auto;
+}
+.fachada__palco {
+  position: relative; height: clamp(32rem, 80svh, 48rem); overflow: hidden;
+  scroll-margin-top: calc(var(--altura-header, 5rem) + var(--space-3));
+  border-radius: var(--radius-lg); background: #080c1a;
+}
+.fachada__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; user-select: none; }
 .fachada__dica {
-  position: absolute; z-index: 2; left: 50%; top: 58%; transform: translate(-50%, -50%);
+  position: absolute; z-index: 2; left: 50%; bottom: 5.5rem; transform: translateX(-50%);
   display: flex; align-items: center; gap: var(--space-2); margin: 0;
   padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill);
   background: rgba(8,12,26,0.6); color: #f6efe3; font-size: var(--step--1);
   pointer-events: none; transition: opacity 400ms ease;
 }
 .fachada__dica svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.fachada__topo { transition: opacity 400ms ease; }
-.fachada[data-modo="quarto"] .fachada__topo { opacity: 0; }
 .fachada:not([data-pronto]) .fachada__dica,
 .fachada[data-modo="quarto"] .fachada__dica { opacity: 0; }
-.fachada__barra {
-  position: absolute; z-index: 3; left: 0; right: 0; bottom: var(--space-5);
-  width: min(100% - 2 * var(--gutter), 64rem); margin-inline: auto;
-  display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3);
+.fachada__giro {
+  position: absolute; z-index: 5; right: var(--space-3); bottom: var(--space-4);
+  display: flex; gap: var(--space-2);
 }
-/* Uma borda so para as tres pilulas da barra: chips, giro e filtros */
-.tipos__chip, .fachada__btn, .busca__abrir { border: 1px solid rgba(246, 239, 227, 0.28); }
+/* Uma borda so para as pilulas: chips e botoes de giro */
+.tipos__chip, .fachada__btn { border: 1px solid rgba(246, 239, 227, 0.28); }
+.fachada__btn {
+  display: grid; place-items: center; width: 3rem; height: 3rem; padding: 0;
+  border-radius: 999px; background: rgba(8, 12, 26, 0.6); color: #f6efe3; cursor: pointer;
+  transition: border-color 220ms ease, color 220ms ease, transform 220ms ease;
+}
+.fachada__btn:hover, .fachada__btn:focus-visible { border-color: #f0c489; color: #f0c489; transform: scale(1.06); }
+.fachada__btn svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fachada__aviso { position: absolute; left: var(--space-5); top: 45%; max-width: 40ch; color: var(--color-rule); }
+
+/* Painel */
+.fachada__painel { display: flex; flex-direction: column; gap: var(--space-5); padding-block: var(--space-4); align-self: start; }
+.fachada__intro .label { color: #f0c489; }
+.fachada__intro h2 { color: var(--color-bg); margin-top: var(--space-2); }
+.fachada__lead { color: var(--color-rule); margin: var(--space-3) 0 0; max-width: 34ch; }
 .fachada .tipos ul { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; margin: 0; }
 .fachada .tipos li { max-width: none; }
 .tipos__chip {
   display: flex; align-items: center; min-height: 2.75rem; padding: 0 var(--space-4);
-  border-radius: 999px;
-  background: rgba(8, 12, 26, 0.55); color: #f6efe3;
+  border-radius: 999px; background: transparent; color: #f6efe3;
   font: inherit; font-size: var(--step--1); letter-spacing: 0.04em; text-decoration: none; cursor: pointer;
   transition: border-color 220ms ease, color 220ms ease, background 220ms ease;
 }
 .tipos__chip:hover, .tipos__chip:focus-visible { border-color: #f0c489; color: #f0c489; }
 .tipos__chip.is-active { border-color: #f0c489; color: #080c1a; background: #f0c489; }
-.fachada__giro { display: flex; gap: var(--space-2); margin-left: auto; }
-.fachada__btn {
-  display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0;
-  border-radius: 999px;
-  background: rgba(8, 12, 26, 0.55); color: #f6efe3; cursor: pointer;
-  transition: border-color 220ms ease, color 220ms ease;
-}
-.fachada__btn:hover, .fachada__btn:focus-visible { border-color: #f0c489; color: #f0c489; }
-.fachada__btn svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.fachada__aviso { position: absolute; left: var(--gutter); top: 50%; max-width: 40ch; color: var(--color-rule); }
 
-/* Ficha do quarto escolhido: sai de perto da janela */
-.ficha {
-  position: absolute; z-index: 4;
-  width: min(19rem, calc(100% - 2 * var(--gutter)));
-  transform: translate(-50%, -50%);
-  background: var(--color-bg); color: var(--color-text);
-  border-radius: var(--radius-md);
-  padding: var(--space-4); display: grid; gap: var(--space-3);
+/* Filtros: sempre a vista no painel, sem botao para abrir */
+.busca__campos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3) var(--space-4); }
+.busca__linha { margin: 0; display: grid; gap: var(--space-1); font-size: var(--step--1); }
+.busca__linha--larga { grid-column: 1 / -1; }
+.busca__linha label { color: var(--color-rule); letter-spacing: 0.04em; display: flex; justify-content: space-between; }
+.busca__linha--caixa { grid-template-columns: auto 1fr; align-items: center; gap: var(--space-3); }
+.busca__linha input[type="range"] { width: 100%; accent-color: #f0c489; min-height: 1.75rem; }
+.busca__linha input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: #f0c489; }
+.busca__linha select {
+  font: inherit; font-size: var(--step--1); min-height: 2.5rem; padding: 0 var(--space-2);
+  color: var(--color-text); background: var(--color-bg); border: 0; border-radius: var(--radius-sm);
 }
-.ficha:not([style*="left"]) { left: 72%; top: 50%; }
+.busca__linha output { font-family: var(--font-display); color: #f6efe3; }
+.busca__conta { margin: 0; font-size: var(--step--1); color: #f0c489; min-height: 1.4em; }
+
+/* Ficha do quarto: cartao a esquerda dentro do palco, com a janela
+   escolhida a direita dele. O painel com chips e filtros fica sempre livre:
+   nada que possa receber foco fica coberto. */
+.ficha {
+  position: absolute; z-index: 4; left: var(--space-4); top: var(--space-4);
+  width: min(20rem, 44%); max-height: calc(100% - 2 * var(--space-4)); overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(8, 12, 26, 0.55);
+  background: var(--color-bg); color: var(--color-text);
+  border-radius: var(--radius-md); padding: var(--space-5) var(--space-4) var(--space-4);
+  display: grid; gap: var(--space-3);
+}
+.ficha:not([hidden]) { animation: surgir 420ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.ficha:focus { outline: none; }
+.ficha:focus-visible { outline: 2px solid #f0c489; outline-offset: 2px; }
+@keyframes surgir { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .ficha__fechar {
   position: absolute; top: var(--space-2); right: var(--space-2);
   width: 2.25rem; height: 2.25rem; padding: 0; border: 0; border-radius: 999px;
@@ -565,50 +592,74 @@ body > main > .section:only-child { margin-block: auto; }
   font-size: var(--step--1); white-space: nowrap; pointer-events: none;
 }
 
-/* Filtros: recolhidos atras de um botao, abrem para cima */
-.busca { position: relative; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: var(--space-2); }
-.busca__abrir {
-  min-height: 2.75rem; padding: 0 var(--space-4);
-  font: inherit; font-size: var(--step--1); letter-spacing: 0.04em;
-  color: #f6efe3; background: rgba(8, 12, 26, 0.55);
-  border-radius: 999px; cursor: pointer;
-}
-.busca__abrir:hover, .busca__abrir[aria-expanded="true"] { border-color: #f0c489; color: #f0c489; }
-.busca__campos {
-  position: absolute; right: 0; bottom: calc(100% + var(--space-2));
-  width: min(20rem, 80vw); display: grid; gap: var(--space-3);
-  padding: var(--space-4) var(--space-4) var(--space-5);
-  background: rgba(8, 12, 26, 0.9); border-radius: var(--radius-md); color: var(--color-bg);
-}
-.busca__linha { margin: 0; display: grid; gap: var(--space-1); font-size: var(--step--1); }
-.busca__linha label { color: var(--color-rule); letter-spacing: 0.04em; }
-.busca__linha--caixa { grid-template-columns: auto 1fr; align-items: center; gap: var(--space-3); }
-.busca__linha input[type="range"] { width: 100%; accent-color: #f0c489; min-height: 1.75rem; }
-.busca__linha input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: #f0c489; }
-.busca__linha select {
-  font: inherit; font-size: var(--step--1); min-height: 2.25rem; padding: 0 var(--space-2);
-  color: var(--color-text); background: var(--color-bg); border: 0; border-radius: var(--radius-sm);
-}
-.busca__linha output { font-family: var(--font-display); font-size: var(--step-0); }
-.busca__conta { margin: var(--space-1) 0 0; text-align: center; font-size: var(--step--1); color: #f0c489; min-height: 1.4em; }
-
-/* Celular: o titulo encolhe, os chips rolam de lado se faltar espaco e a
-   ficha vira uma gaveta presa no pe do palco, sem tapar a janela escolhida. */
+/* Celular e tablet: o palco em cima, o painel embaixo */
 @media (max-width: 55.99em) {
-  .fachada__palco { height: clamp(36rem, 92svh, 46rem); }
-  .fachada__topo { padding-top: var(--space-5); }
-  .fachada__topo h2 { font-size: var(--step-2); }
-  .fachada__barra { bottom: var(--space-4); gap: var(--space-2); }
-  .fachada .tipos { width: 100%; overflow-x: auto; }
-  .fachada .tipos ul { flex-wrap: nowrap; }
-  .tipos__chip { padding: 0 var(--space-3); white-space: nowrap; }
-  .fachada__giro { margin-left: 0; }
-  .busca { margin-left: auto; }
-  .ficha, .ficha:not([style*="left"]) {
-    left: var(--gutter); right: var(--gutter); top: auto; bottom: var(--space-4);
-    width: auto; transform: none; max-height: 70%; overflow-y: auto;
+  .fachada__grade { grid-template-columns: 1fr; gap: var(--space-4); width: 100%; }
+  .fachada__palco { height: clamp(26rem, 64svh, 36rem); border-radius: var(--radius-sm); }
+  .fachada__painel { padding: 0 var(--gutter); gap: var(--space-4); }
+  .fachada__intro h2 { font-size: var(--step-2); }
+  .fachada .tipos ul { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  .tipos__chip { white-space: nowrap; padding: 0 var(--space-3); }
+  .fachada__dica { bottom: 5rem; }
+  /* gaveta presa no pe da tela, com o palco visivel acima */
+  .ficha {
+    position: fixed; z-index: 60; left: var(--space-2); right: var(--space-2); top: auto; bottom: var(--space-2);
+    width: auto; max-height: 52svh; overflow-y: auto; padding-top: var(--space-4);
   }
-  .fachada[data-modo="quarto"] .fachada__barra { visibility: hidden; }
-  /* filtros abertos: os chips saem de baixo do painel em vez de vazar por ele */
-  .fachada__barra:has(.busca__abrir[aria-expanded="true"]) .tipos { visibility: hidden; }
+  .ficha .ficha__dados { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Regua de andares ao lado do predio, como nos seletores de unidade das
+   construtoras: andar, livres/total e menor diaria. Hover acende o andar no
+   predio; clique gira ate ele e filtra. */
+.regua {
+  position: absolute; z-index: 3; right: var(--space-3); top: 50%; transform: translateY(-50%);
+  display: grid; gap: 2px; list-style: none; margin: 0; padding: var(--space-2);
+  background: rgba(8, 12, 26, 0.62); border-radius: var(--radius-md);
+}
+.regua li { max-width: none; }
+.regua__andar {
+  display: grid; grid-template-columns: 1.6rem auto; align-items: center; gap: var(--space-2);
+  width: 100%; min-height: 2.25rem; padding: 0 var(--space-2);
+  font: inherit; font-size: var(--step--1); color: #f6efe3; text-align: left;
+  background: transparent; border: 0; border-radius: var(--radius-sm); cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+.regua__num { font-family: var(--font-display); font-size: var(--step-0); text-align: center; }
+.regua__info { display: grid; line-height: 1.1; }
+.regua__livres { color: #f0c489; }
+.regua__preco { color: var(--color-rule); font-size: 0.75rem; }
+.regua__andar:hover, .regua__andar.is-hover, .regua__andar:focus-visible { background: rgba(240, 196, 137, 0.18); }
+.regua__andar[aria-pressed="true"] { background: #f0c489; color: #080c1a; }
+.regua__andar[aria-pressed="true"] .regua__livres, .regua__andar[aria-pressed="true"] .regua__preco { color: #080c1a; }
+.fachada__legenda {
+  position: absolute; z-index: 3; left: var(--space-4); bottom: var(--space-4); margin: 0;
+  display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3);
+  background: rgba(8, 12, 26, 0.62); border-radius: var(--radius-pill); color: #f6efe3; font-size: 0.75rem;
+}
+.legenda__livre, .legenda__ocupado { display: inline-block; width: 0.75rem; height: 0.9rem; border-radius: 2px; }
+.legenda__livre { background: #f0c489; }
+.legenda__ocupado { background: rgba(246, 239, 227, 0.22); margin-left: var(--space-2); }
+.tip__andar { color: #f0c489; }
+
+/* Vista da janela e composicao da diaria na ficha */
+.ficha__vista { margin: 0; position: relative; }
+.ficha__vista img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-md); display: block; }
+.ficha__vista figcaption {
+  position: absolute; left: var(--space-2); bottom: var(--space-2); padding: 2px var(--space-2);
+  background: rgba(8, 12, 26, 0.7); color: #f6efe3; font-size: 0.7rem; border-radius: var(--radius-sm);
+}
+.ficha__preco summary { cursor: pointer; font-size: var(--step--1); color: var(--color-muted); }
+.ficha__preco dl { margin: var(--space-2) 0 0; display: grid; gap: 2px; font-size: var(--step--1); }
+.ficha__preco dl div { display: flex; justify-content: space-between; }
+.ficha__preco dd { margin: 0; font-family: var(--font-display); }
+.ficha { width: min(21rem, 46%); gap: var(--space-2); }
+.ficha__vista img { aspect-ratio: 2 / 1; }
+
+@media (max-width: 55.99em) {
+  /* no celular a regua cobriria as janelas da direita do predio: o andar
+     se escolhe pelo filtro e pela ficha */
+  .regua { display: none; }
+  .fachada__legenda { left: var(--space-2); bottom: auto; top: var(--space-2); }
+  .ficha { width: auto; }
 }

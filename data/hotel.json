@@ -34,6 +34,10 @@
    "area": 28
   }
  },
+ "precos": {
+  "porAndar": 5,
+  "vistaMar": 20
+ },
  "andares": [
   {
    "numero": 1,
@@ -43,9 +47,9 @@
      "tipo": "superior",
      "fachada": "F",
      "posicaoNaFachada": 0,
-     "precoBase": 290,
+     "precoBase": 310,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -103,9 +107,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 0,
-     "precoBase": 210,
+     "precoBase": 230,
      "acessivel": true,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -113,9 +117,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 1,
-     "precoBase": 360,
+     "precoBase": 380,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -123,9 +127,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 2,
-     "precoBase": 210,
+     "precoBase": 230,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -133,9 +137,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 3,
-     "precoBase": 360,
+     "precoBase": 380,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     }
    ]
@@ -148,9 +152,9 @@
      "tipo": "superior",
      "fachada": "F",
      "posicaoNaFachada": 0,
-     "precoBase": 295,
+     "precoBase": 315,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -208,9 +212,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 0,
-     "precoBase": 215,
+     "precoBase": 235,
      "acessivel": true,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -218,9 +222,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 1,
-     "precoBase": 365,
+     "precoBase": 385,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -228,9 +232,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 2,
-     "precoBase": 215,
+     "precoBase": 235,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -238,9 +242,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 3,
-     "precoBase": 365,
+     "precoBase": 385,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     }
    ]
@@ -253,9 +257,9 @@
      "tipo": "superior",
      "fachada": "F",
      "posicaoNaFachada": 0,
-     "precoBase": 300,
+     "precoBase": 320,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -313,9 +317,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 0,
-     "precoBase": 220,
+     "precoBase": 240,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -323,9 +327,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 1,
-     "precoBase": 370,
+     "precoBase": 390,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "indisponivel"
     },
     {
@@ -333,9 +337,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 2,
-     "precoBase": 220,
+     "precoBase": 240,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -343,9 +347,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 3,
-     "precoBase": 370,
+     "precoBase": 390,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     }
    ]
@@ -358,9 +362,9 @@
      "tipo": "superior",
      "fachada": "F",
      "posicaoNaFachada": 0,
-     "precoBase": 305,
+     "precoBase": 325,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -418,9 +422,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 0,
-     "precoBase": 225,
+     "precoBase": 245,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -428,9 +432,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 1,
-     "precoBase": 375,
+     "precoBase": 395,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "indisponivel"
     },
     {
@@ -438,9 +442,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 2,
-     "precoBase": 225,
+     "precoBase": 245,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -448,9 +452,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 3,
-     "precoBase": 375,
+     "precoBase": 395,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "indisponivel"
     }
    ]
@@ -463,9 +467,9 @@
      "tipo": "superior",
      "fachada": "F",
      "posicaoNaFachada": 0,
-     "precoBase": 310,
+     "precoBase": 330,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -523,9 +527,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 0,
-     "precoBase": 230,
+     "precoBase": 250,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "indisponivel"
     },
     {
@@ -533,9 +537,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 1,
-     "precoBase": 380,
+     "precoBase": 400,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -543,9 +547,9 @@
      "tipo": "casal",
      "fachada": "D",
      "posicaoNaFachada": 2,
-     "precoBase": 230,
+     "precoBase": 250,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     },
     {
@@ -553,9 +557,9 @@
      "tipo": "familia",
      "fachada": "D",
      "posicaoNaFachada": 3,
-     "precoBase": 380,
+     "precoBase": 400,
      "acessivel": false,
-     "vista": "cidade",
+     "vista": "mar",
      "status": "disponivel"
     }
    ]
