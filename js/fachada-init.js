@@ -31,10 +31,11 @@ if (root) {
     if (!api) return '';
     const atual = Math.floor(numero / 100);
     const pos = numero % 100;
-    const existe = new Set(api.hotel.andares.flatMap((a) => a.quartos.map((q) => q.numero)));
+    const livres = new Set(api.hotel.andares.flatMap((a) => a.quartos)
+      .filter((q) => q.status === 'disponivel').map((q) => q.numero));
     const botoes = api.hotel.andares.map((a) => {
       const aqui = a.numero === atual;
-      const tem = existe.has(a.numero * 100 + pos);
+      const tem = aqui || livres.has(a.numero * 100 + pos);
       return `<button type="button" data-andar="${a.numero}"${aqui ? ' aria-current="true"' : ''}${tem ? '' : ' disabled'}>`
         + `<span class="visually-hidden">${fr('andar', 'Andar')} </span>${a.numero}</button>`;
     }).join('');
@@ -157,11 +158,33 @@ if (root) {
     const preco = painel.querySelector('#f-preco');
     const saidaPreco = painel.querySelector('[data-f-preco]');
     const livre = painel.querySelector('#f-livre');
+    // Filtros fechados por padrao atras de um unico botao discreto. Fechar o
+    // painel devolve tudo ao estado neutro, sem filtro aplicado no predio.
+    const botao = abrir || document.createElement('button');
+    if (!abrir) {
+      botao.type = 'button';
+      botao.className = 'busca__abrir';
+      botao.setAttribute('data-busca-abrir', '');
+      painel.insertBefore(botao, campos);
+    }
+    botao.textContent = fr('filtrar', 'Filtrar quartos');
+    botao.setAttribute('aria-controls', campos.id);
+    botao.setAttribute('aria-expanded', 'false');
+    campos.hidden = true;
     painel.hidden = false;
-    if (abrir) abrir.addEventListener('click', () => {
-      const aberto = abrir.getAttribute('aria-expanded') === 'true';
-      abrir.setAttribute('aria-expanded', String(!aberto));
+    function neutro() {
+      vista.value = '';
+      preco.value = preco.max;
+      saidaPreco.textContent = `R$ ${preco.value}`;
+      livre.checked = false;
+      andar.value = '';
+      andar.dispatchEvent(new Event('input'));
+    }
+    botao.addEventListener('click', () => {
+      const aberto = botao.getAttribute('aria-expanded') === 'true';
+      botao.setAttribute('aria-expanded', String(!aberto));
       campos.hidden = aberto;
+      if (aberto) neutro();
     });
     const todos = api.hotel.andares.reduce((lista, a) => lista.concat(a.quartos), []);
     function aplicar() {
@@ -242,6 +265,9 @@ if (root) {
           <p><a class="btn btn--link" href="${tipo.pagina}">${fr('ver', 'Ver o {tipo}').replace('{tipo}', nomeTipo(q.tipo, tipo))}</a></p>`;
         // link proprio do quarto: da para mandar por mensagem e abrir direto nele
         history.replaceState(null, '', `#quarto=${q.numero}`);
+      },
+      onOcupado(q) {
+        anunciar(fr('ocupadoAviso', 'Quarto {n} ocupado. Escolha outro.').replace('{n}', q.numero));
       },
       onModo(modo, q) {
         root.setAttribute('data-modo', modo);

@@ -536,7 +536,21 @@ main > section.fachada { background: #080c1a; color: var(--color-bg); padding-bo
 .tipos__chip:hover, .tipos__chip:focus-visible { border-color: #f0c489; color: #f0c489; }
 .tipos__chip.is-active { border-color: #f0c489; color: #080c1a; background: #f0c489; }
 
-/* Filtros: sempre a vista no painel, sem botao para abrir */
+/* Filtros: fechados atras de um botao discreto, em texto, sem caixa */
+.busca__abrir {
+  display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; padding: 0;
+  font: inherit; font-size: var(--step--1); letter-spacing: 0.04em; color: var(--color-rule);
+  background: transparent; border: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 0.3em; text-decoration-color: rgba(246, 239, 227, 0.28);
+}
+.busca__abrir::after {
+  content: ""; width: 0.6em; height: 0.35em; background: currentColor;
+  clip-path: polygon(0 0, 100% 0, 50% 100%); transition: transform 220ms ease;
+}
+.busca__abrir[aria-expanded="true"]::after { transform: rotate(180deg); }
+.busca__abrir:hover, .busca__abrir:focus-visible, .busca__abrir[aria-expanded="true"] { color: #f0c489; }
+.busca__campos[hidden] { display: none; }
+.busca__abrir + .busca__campos { margin-top: var(--space-3); }
 .busca__campos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3) var(--space-4); }
 .busca__linha { margin: 0; display: grid; gap: var(--space-1); font-size: var(--step--1); }
 .busca__linha--larga { grid-column: 1 / -1; }

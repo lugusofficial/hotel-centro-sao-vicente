@@ -46,7 +46,7 @@ function dentro(p, q) {
 }
 const centro = (q) => q.reduce((a, p) => [a[0] + p[0] / 4, a[1] + p[1] / 4], [0, 0]);
 
-export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, onModo }) {
+export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, onModo, onOcupado }) {
   const base = new URL('../', import.meta.url);
   const [hotel, giro] = await Promise.all([
     fetch(new URL('data/hotel.json', base)).then((r) => r.json()),
@@ -56,6 +56,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
   const PX_POR_VISTA = Math.max(4, 900 / N);   // uma volta inteira em ~900 px de arraste
   const porNumero = new Map();
   hotel.andares.forEach((a) => a.quartos.forEach((q) => porNumero.set(q.numero, q)));
+  // so quarto livre abre ficha; o ocupado aparece apagado e riscado no predio
+  const livre = (n) => { const q = porNumero.get(n); return !!q && q.status === 'disponivel'; };
 
   const melhor = new Map();
   giro.vistas.forEach((v, k) => {
@@ -230,6 +232,21 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
         ctx.stroke();
       });
     }
+    if (!selecionado) {
+      Object.entries(jan).forEach(([num, j]) => {
+        if (livre(+num)) return;
+        caminho(j.q);
+        ctx.fillStyle = 'rgba(8, 12, 26, 0.72)';
+        ctx.fill();
+        const [a, , c] = j.q.map((p) => paraTela(T, p));
+        ctx.beginPath();
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(c[0], c[1]);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 243, 220, 0.4)';
+        ctx.stroke();
+      });
+    }
     if (filtro || selecionado) {
       Object.entries(jan).forEach(([num, j]) => {
         const bate = selecionado ? +num === selecionado : filtro(porNumero.get(+num));
@@ -244,8 +261,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
       let cor = null;
       let largura = 2;
       if (n === selecionado) { cor = '#f0c489'; largura = 3; }
-      else if (n === sobre) cor = '#fff3dc';
-      else if (filtro && filtro(porNumero.get(n))) { cor = 'rgba(240, 196, 137, 0.9)'; largura = 1.5; }
+      else if (n === sobre && livre(n)) cor = '#fff3dc';
+      else if (filtro && livre(n) && filtro(porNumero.get(n))) { cor = 'rgba(240, 196, 137, 0.9)'; largura = 1.5; }
       if (!cor) return;
       caminho(j.q);
       ctx.lineWidth = largura;
@@ -307,7 +324,8 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
 
   function selecionar(numero) {
     const q = porNumero.get(numero);
-    if (!q) return;
+    if (!q) return false;
+    if (!livre(numero)) { if (onOcupado) onOcupado(q); return false; }
     pedirTodas();
     selecionado = numero;
     modo = 'quarto';
@@ -463,9 +481,12 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     const n = janelaEm(ev, 0);
     if (n !== sobre) {
       sobre = n;
-      canvas.style.cursor = n ? 'pointer' : 'grab';
+      canvas.style.cursor = !n ? 'grab' : livre(n) ? 'pointer' : 'not-allowed';
       realcarAndar(n ? Math.floor(n / 100) : null);
     }
+    mostrarDica(ev, n);
+  });
+  function mostrarDica(ev, n) {
     if (!tooltip) return;
     if (!n) { tooltip.hidden = true; return; }
     const q = porNumero.get(n);
@@ -474,14 +495,14 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
     const disp = q.status === 'disponivel';
     const res = resumoAndar(Math.floor(n / 100));
     tooltip.innerHTML = `<strong>${fr('quarto', 'Quarto')} ${n}</strong><span>${nomeTipo} · R$ ${q.precoBase}</span>`
-      + `<span>${disp ? fr('disponivel', 'Disponível') : fr('indisponivel', 'Indisponível nas datas')}</span>`
+      + `<span>${disp ? fr('disponivel', 'Disponível') : fr('indisponivel', 'Ocupado')}</span>`
       + `<span class="tip__andar">${fr('resumoAndar', 'Andar {a}: {n} livres, a partir de R$ {p}')
         .replace('{a}', res.andar).replace('{n}', res.livres).replace('{p}', res.min)}</span>`;
     const r = canvas.getBoundingClientRect();
     tooltip.style.left = `${ev.clientX - r.left}px`;
     tooltip.style.top = `${ev.clientY - r.top}px`;
     tooltip.hidden = false;
-  });
+  }
   const soltar = (ev) => {
     if (!arrasto || arrasto.id !== ev.pointerId) return;
     const { girando } = arrasto;
@@ -495,7 +516,13 @@ export async function montarPredio({ canvas, tooltip, onSelecionar, onQuadro, on
       return;
     }
     const n = janelaEm(ev, ev.pointerType === 'mouse' ? 0 : 40);
-    if (n) selecionar(n);
+    if (n && !livre(n)) {
+      // toque num ocupado: so avisa, sem abrir ficha
+      mostrarDica(ev, n);
+      clearTimeout(soltar.t);
+      soltar.t = setTimeout(() => { if (tooltip && sobre !== n) tooltip.hidden = true; }, 2500);
+      selecionar(n);
+    } else if (n) selecionar(n);
     else if (modo === 'quarto') verGeral();
   };
   canvas.addEventListener('pointerup', soltar);
