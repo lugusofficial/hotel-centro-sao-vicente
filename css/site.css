@@ -258,7 +258,7 @@ html[data-rolou] .cena__seta:not(:focus-visible) { opacity: 0; pointer-events: n
   position: absolute; top: var(--space-4); left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: var(--space-2); margin: 0;
   padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill);
-  background: rgba(20, 16, 12, 0.72); color: #fff; font-size: var(--step--1);
+  background: var(--color-text); color: var(--color-bg); font-size: var(--step--1); opacity: 0.88;
   white-space: nowrap; pointer-events: none; transition: opacity 400ms ease;
 }
 .tour__dica[data-some] { opacity: 0; }
