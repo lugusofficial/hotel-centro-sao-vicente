@@ -290,6 +290,71 @@ html[data-rolou] .cena__seta:not(:focus-visible) { opacity: 0; pointer-events: n
   .tour__lista li { max-width: none; }
 }
 
+/* Quarto andavel (js/andavel.js): na pagina so a foto e o botao; o quarto
+   abre em tela cheia por cima, com a rolagem da pagina travada. */
+.tour__capa--andavel { position: relative; }
+.andavel-aberto, .andavel-aberto body { overflow: hidden; }
+.andavel {
+  position: fixed; inset: 0; z-index: 80; overflow: hidden; overscroll-behavior: contain;
+  background: var(--color-text); color: var(--color-bg);
+}
+.andavel[hidden] { display: none; }
+.andavel button { touch-action: manipulation; font: inherit; cursor: pointer; }
+/* touch-action none so aqui: o arraste e do quarto, nao da pagina */
+.andavel__canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  cursor: grab;
+}
+.andavel__canvas[data-arrastando] { cursor: grabbing; }
+.andavel__carga {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
+  gap: var(--space-3); text-align: center;
+}
+.andavel__carga[hidden] { display: none; }
+.andavel__carga img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.andavel__carga::before {
+  content: ""; position: absolute; inset: 0; background: rgba(8, 12, 26, 0.42);
+}
+.andavel__carga p, .andavel__barra { position: relative; margin: 0; }
+.andavel__barra {
+  width: min(16rem, 70vw); height: 0.375rem; overflow: hidden;
+  border-radius: var(--radius-pill); background: var(--color-muted);
+}
+.andavel__barra span {
+  display: block; height: 100%; background: var(--color-bg);
+  transform: scaleX(0); transform-origin: left; transition: transform 200ms ease;
+}
+/* esquerda e direita fixas em vez do translate: com left 50% a dica so
+   tinha meia tela de largura e quebrava em tres linhas no celular */
+.andavel .andavel__dica {
+  top: 38%; left: var(--space-4); right: var(--space-4); transform: none;
+  width: fit-content; margin-inline: auto; white-space: normal; text-align: center;
+}
+.andavel:not([data-pronto]) .andavel__dica,
+.andavel:not([data-pronto]) .andavel__rodape { display: none; }
+/* 3,5rem de alvo para fechar: e a saida, tem de ser facil de achar com o polegar */
+.andavel__fechar {
+  position: absolute; z-index: 2;
+  top: max(var(--space-3), env(safe-area-inset-top)); right: max(var(--space-3), env(safe-area-inset-right));
+  width: 3.5rem; height: 3.5rem; border: 0; border-radius: var(--radius-pill);
+  background: var(--color-bg); color: var(--color-text); font-size: var(--step-3); line-height: 1;
+}
+.andavel__rodape {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--space-2) var(--space-5);
+  padding: var(--space-3) var(--space-3) max(var(--space-3), env(safe-area-inset-bottom));
+}
+.andavel__pontos, .andavel__acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+.andavel__chip, .andavel__mini {
+  min-height: 2.75rem; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-pill);
+  background: var(--color-bg); color: var(--color-text); font-size: var(--step--1); line-height: 1;
+  white-space: nowrap; transition: background 180ms ease, color 180ms ease;
+}
+.andavel__mini { min-width: 2.75rem; opacity: 0.88; }
+.andavel__chip:hover, .andavel__mini:hover { background: var(--color-accent); color: var(--color-on-accent); }
+.andavel button:focus-visible { outline: 3px solid var(--color-bg); outline-offset: 3px; }
+
 /* Comodidades */
 .amen { display: grid; gap: var(--space-3); }
 .amen li {
