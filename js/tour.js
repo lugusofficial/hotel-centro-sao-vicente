@@ -83,6 +83,15 @@ if (raiz) {
         raiz.setAttribute('data-pronto', 'true');
         if (botao) botao.hidden = true;
         anunciar(fr('tourAberto', 'Tour aberto. Arraste para olhar em volta, ou use os botões abaixo.'));
+        // dica sobre a imagem no lugar dos botoes (no celular eles ficam so
+        // para leitor de tela); some no primeiro arraste
+        if (!dica) {
+          dica = document.createElement('p');
+          dica.className = 'tour__dica';
+          dica.setAttribute('aria-hidden', 'true');
+          dica.innerHTML = `<span class="tour__mao">&#8596;</span>${fr('tourDica', 'Arraste para olhar em volta')}`;
+          canvas.after(dica);
+        }
         invalidar();
       },
       undefined,
@@ -117,6 +126,8 @@ if (raiz) {
     let inicioX = 0;
     let inicioY = 0;
     let decidido = false;
+    let dica = null;
+    const tirarDica = () => { if (dica) dica.setAttribute('data-some', 'true'); };
 
     canvas.addEventListener('pointerdown', (e) => {
       arrastando = true;
@@ -137,6 +148,7 @@ if (raiz) {
         decidido = true;
         canvas.setPointerCapture(e.pointerId);
       }
+      tirarDica();
       lon -= (e.clientX - ultimoX) * 0.13;
       lat += (e.clientY - ultimoY) * 0.13;
       ultimoX = e.clientX;
