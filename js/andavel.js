@@ -612,7 +612,7 @@ function iniciar() {
     });
 
     // ------------------------------------------------------ joystick
-    // Base no canto inferior esquerdo (so no toque; o CSS o esconde com
+    // Base no canto inferior direito (so no toque; o CSS o esconde com
     // pointer fine). Tem o proprio pointerId: o polegar anda aqui enquanto
     // outro dedo olha no canvas.
     const base = ov.querySelector('[data-andavel-joy]');
@@ -687,6 +687,17 @@ function iniciar() {
         andarAte(de.x, de.z, mirarPara(i.olharPara[0], i.olharPara[1], i.olharPara[2], de),
           () => anunciar(fr('andavelInicio', 'De volta à porta')));
       });
+    }
+    // No toque o recomecar vai para o canto de cima (o CSS o posiciona) e a
+    // linha dos pontos so esmaece na borda quando ha mais pontos para rolar.
+    const toque = matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (toque && recomecar) ov.appendChild(recomecar);
+    const pontos = ov.querySelector('.andavel__pontos');
+    if (toque && pontos) {
+      const borda = () => pontos.toggleAttribute('data-transborda',
+        pontos.scrollLeft + pontos.clientWidth < pontos.scrollWidth - 4);
+      pontos.addEventListener('scroll', borda, { passive: true });
+      new ResizeObserver(borda).observe(pontos);
     }
 
     function tecla(e, desce) {

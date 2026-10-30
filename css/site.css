@@ -355,11 +355,12 @@ html[data-rolou] .cena__seta:not(:focus-visible) { opacity: 0; pointer-events: n
 .andavel__chip:hover, .andavel__mini:hover { background: var(--color-accent); color: var(--color-on-accent); }
 .andavel button:focus-visible { outline: 3px solid var(--color-bg); outline-offset: 3px; }
 .andavel__dica-item { display: block; }
-/* Joystick do celular: base de 110 px no canto inferior esquerdo, acima da
+.andavel__dica .tour__mao { display: none; }
+/* Joystick do celular: base de 110 px no canto inferior direito (polegar direito, pedido do Lucas; no centro cobria o chao a frente, onde se toca para andar), acima da
    linha dos chips e da area segura; o pino segue o polegar ate o raio. */
 .andavel__joy {
   position: absolute; z-index: 2; width: 6.875rem; height: 6.875rem;
-  left: max(var(--space-4), env(safe-area-inset-left));
+  right: max(var(--space-4), env(safe-area-inset-right));
   bottom: calc(max(var(--space-3), env(safe-area-inset-bottom)) + 3.5rem + var(--space-4));
   display: grid; place-items: center; border-radius: var(--radius-pill);
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
@@ -388,6 +389,20 @@ html[data-rolou] .cena__seta:not(:focus-visible) { opacity: 0; pointer-events: n
   .andavel__pontos::-webkit-scrollbar { display: none; }
   .andavel__chip { flex: none; }
   .andavel__acoes { flex: none; }
+  /* Recomecar sobe para o canto de cima, espelhando o X: na linha de baixo
+     ele cortava o ultimo ponto pela metade (print do Lucas, 30/10) */
+  .andavel [data-andavel-recomecar] {
+    position: absolute; z-index: 2;
+    top: max(var(--space-3), env(safe-area-inset-top)); left: max(var(--space-3), env(safe-area-inset-left));
+    width: 3.5rem; height: 3.5rem; padding: 0; font-size: 0; opacity: 1;
+  }
+  .andavel [data-andavel-recomecar]::before { content: "\21BA"; font-size: var(--step-2); }
+  /* a linha dos pontos esmaece na borda: o ponto que nao cabe some aos
+     poucos e convida a rolar, em vez de aparecer cortado */
+  .andavel__pontos[data-transborda] {
+    -webkit-mask-image: linear-gradient(90deg, var(--color-text) 82%, transparent);
+    mask-image: linear-gradient(90deg, var(--color-text) 82%, transparent);
+  }
   .andavel__mini[data-girar] {
     position: absolute; width: 1px; height: 1px; min-width: 0; min-height: 0; padding: 0; overflow: hidden;
     clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
