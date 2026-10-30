@@ -354,6 +354,45 @@ html[data-rolou] .cena__seta:not(:focus-visible) { opacity: 0; pointer-events: n
 .andavel__mini { min-width: 2.75rem; opacity: 0.88; }
 .andavel__chip:hover, .andavel__mini:hover { background: var(--color-accent); color: var(--color-on-accent); }
 .andavel button:focus-visible { outline: 3px solid var(--color-bg); outline-offset: 3px; }
+.andavel__dica-item { display: block; }
+/* Joystick do celular: base de 110 px no canto inferior esquerdo, acima da
+   linha dos chips e da area segura; o pino segue o polegar ate o raio. */
+.andavel__joy {
+  position: absolute; z-index: 2; width: 6.875rem; height: 6.875rem;
+  left: max(var(--space-4), env(safe-area-inset-left));
+  bottom: calc(max(var(--space-3), env(safe-area-inset-bottom)) + 3.5rem + var(--space-4));
+  display: grid; place-items: center; border-radius: var(--radius-pill);
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.andavel__joy::before {
+  content: ""; position: absolute; inset: 0; border-radius: var(--radius-pill);
+  background: var(--color-text); opacity: 0.32;
+}
+.andavel__pino {
+  position: relative; width: 3rem; height: 3rem; border-radius: var(--radius-pill);
+  background: var(--color-bg); opacity: 0.92; transition: transform 160ms ease;
+}
+.andavel__joy[data-ativo] .andavel__pino { transition: none; }
+.andavel:not([data-pronto]) .andavel__joy { display: none; }
+@media (pointer: fine) {
+  .andavel__joy { display: none; }
+}
+/* No toque: chips numa linha com rolagem lateral, para nao cobrir o
+   joystick, e os botoes de girar so para leitor de tela e teclado. */
+@media (hover: none) and (pointer: coarse) {
+  .andavel__rodape { flex-wrap: nowrap; justify-content: flex-start; gap: var(--space-2); }
+  .andavel__pontos {
+    flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; justify-content: flex-start;
+    overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  }
+  .andavel__pontos::-webkit-scrollbar { display: none; }
+  .andavel__chip { flex: none; }
+  .andavel__acoes { flex: none; }
+  .andavel__mini[data-girar] {
+    position: absolute; width: 1px; height: 1px; min-width: 0; min-height: 0; padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+}
 
 /* Comodidades */
 .amen { display: grid; gap: var(--space-3); }

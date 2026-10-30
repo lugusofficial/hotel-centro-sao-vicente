@@ -165,9 +165,13 @@ function iniciar() {
 
   const dicaTexto = ov.querySelector('[data-andavel-dica-texto]');
   if (dicaTexto) {
-    dicaTexto.textContent = toque
-      ? fr('andavelDicaToque', 'Arraste para olhar · toque no chão para andar')
-      : fr('andavelDicaMouse', 'Arraste para olhar · clique no chão ou use WASD');
+    // No toque, dois itens curtos: o joystick anda, o arraste na tela olha.
+    if (toque) {
+      dicaTexto.replaceChildren(...[fr('andavelDicaJoy', 'Joystick: andar'), fr('andavelDicaOlhar', 'Arraste a tela: olhar')]
+        .map((t) => { const s = document.createElement('span'); s.className = 'andavel__dica-item'; s.textContent = t; return s; }));
+    } else {
+      dicaTexto.textContent = fr('andavelDicaMouse', 'Arraste para olhar · clique no chão ou use WASD');
+    }
   }
   const tirarDica = () => { if (dica) dica.setAttribute('data-some', 'true'); };
 
@@ -387,6 +391,8 @@ function iniciar() {
     let giro = null;
     let inercia = 0;
     const teclas = new Set();
+    // joystick: frente (+) e lado (+ direita), de -1 a 1
+    const joy = { f: 0, s: 0 };
     let medindo = 0;
 
     function pedir() {
@@ -464,17 +470,13 @@ function iniciar() {
         if (teclas.has('arrowleft') || teclas.has('q')) r += 1;
         if (teclas.has('arrowright') || teclas.has('e')) r -= 1;
         yaw += r * dt * 1.6;
-        if (f || s) {
-          viagem = null;
-          anel.visible = false;
-          const v = 1.4 * dt / Math.hypot(f, s);
-          const dx = (-Math.sin(yaw) * f + Math.cos(yaw) * s) * v;
-          const dz = (-Math.cos(yaw) * f - Math.sin(yaw) * s) * v;
-          // Desliza na parede: se o passo inteiro sai do livre, tenta cada eixo.
-          if (livre(pos.x + dx, pos.z + dz)) { pos.x += dx; pos.z += dz; }
-          else if (livre(pos.x + dx, pos.z)) pos.x += dx;
-          else if (livre(pos.x, pos.z + dz)) pos.z += dz;
-        }
+        if (f || s) passo(f, s, (1.4 * dt) / Math.hypot(f, s));
+        continuar = true;
+      }
+
+      // Joystick: velocidade proporcional ao deslocamento do pino, ate 1,2 m/s
+      if (joy.f || joy.s) {
+        passo(joy.f, joy.s, 1.2 * dt);
         continuar = true;
       }
 
@@ -484,6 +486,18 @@ function iniciar() {
       renderer.render(cena, camera);
       quadros += 1;
       if (continuar) pedir(); else ultimo = 0;
+    }
+
+    // Anda f para a frente e s para o lado, escalados por v. Desliza na
+    // parede: se o passo inteiro sai do livre, tenta cada eixo.
+    function passo(f, s, v) {
+      viagem = null;
+      anel.visible = false;
+      const dx = (-Math.sin(yaw) * f + Math.cos(yaw) * s) * v;
+      const dz = (-Math.cos(yaw) * f - Math.sin(yaw) * s) * v;
+      if (livre(pos.x + dx, pos.z + dz)) { pos.x += dx; pos.z += dz; }
+      else if (livre(pos.x + dx, pos.z)) pos.x += dx;
+      else if (livre(pos.x, pos.z + dz)) pos.z += dz;
     }
 
     function andarAte(x, z, olhar, fim) {
@@ -597,6 +611,51 @@ function iniciar() {
       if (e.pointerType === 'mouse' && !ativo && !viagem && anel.visible) { anel.visible = false; pedir(); }
     });
 
+    // ------------------------------------------------------ joystick
+    // Base no canto inferior esquerdo (so no toque; o CSS o esconde com
+    // pointer fine). Tem o proprio pointerId: o polegar anda aqui enquanto
+    // outro dedo olha no canvas.
+    const base = ov.querySelector('[data-andavel-joy]');
+    const pino = ov.querySelector('[data-andavel-pino]');
+    let polegar = null;
+    const pinoEm = (x, y) => { if (pino) pino.style.transform = `translate(${x}px, ${y}px)`; };
+    function moverPino(e) {
+      const raio = polegar.raio;
+      let dx = e.clientX - polegar.cx;
+      let dy = e.clientY - polegar.cy;
+      const d = Math.hypot(dx, dy);
+      if (d > raio) { dx *= raio / d; dy *= raio / d; }
+      pinoEm(dx, dy);
+      // zona morta de 12% para o polegar parado nao arrastar a camera
+      const m = Math.min(1, d / raio);
+      joy.f = m < 0.12 ? 0 : -dy / raio;
+      joy.s = m < 0.12 ? 0 : dx / raio;
+      if (joy.f || joy.s) { tirarDica(); inercia = 0; pedir(); }
+    }
+    function soltarPino(e) {
+      if (!polegar || e.pointerId !== polegar.id) return;
+      polegar = null;
+      joy.f = 0;
+      joy.s = 0;
+      if (base) { base.removeAttribute('data-ativo'); if (base.hasPointerCapture(e.pointerId)) base.releasePointerCapture(e.pointerId); }
+      pinoEm(0, 0);
+    }
+    if (base) {
+      base.addEventListener('pointerdown', (e) => {
+        if (polegar || !alvos.length) return;
+        e.preventDefault();
+        const r = base.getBoundingClientRect();
+        polegar = { id: e.pointerId, cx: r.left + r.width / 2, cy: r.top + r.height / 2, raio: r.width / 2 };
+        base.setPointerCapture(e.pointerId);
+        base.setAttribute('data-ativo', '');
+        moverPino(e);
+      });
+      base.addEventListener('pointermove', (e) => { if (polegar && e.pointerId === polegar.id) moverPino(e); });
+      base.addEventListener('pointerup', soltarPino);
+      base.addEventListener('pointercancel', soltarPino);
+      base.addEventListener('lostpointercapture', soltarPino);
+    }
+
     // ------------------------------------------------------ botoes
     ov.querySelectorAll('[data-ponto]').forEach((b) => {
       b.addEventListener('click', () => {
@@ -691,6 +750,10 @@ function iniciar() {
       pausar() {
         pausado = true;
         teclas.clear();
+        joy.f = 0;
+        joy.s = 0;
+        polegar = null;
+        pinoEm(0, 0);
         if (pedido) { cancelAnimationFrame(pedido); pedido = 0; }
       },
       retomar() { pausado = false; ultimo = 0; pedir(); },
